@@ -1,0 +1,473 @@
+<section class="campaigns-page">
+  <app-page-header
+    eyebrow="Activation"
+    title="Campaigns"
+    description="Centro de preparacion comercial para segmentar leads, generar drafts y aprobar outreach sin envio automatico."
+    badge="Campaign Lab"
+  />
+
+  <div class="actions">
+    <button class="primary-button" type="button" (click)="createCampaign()" [disabled]="actionInFlight() !== ''">
+      Create campaign
+    </button>
+    <button class="ghost-button" type="button" (click)="loadCampaigns()" [disabled]="isLoading()">Refresh</button>
+  </div>
+
+  @if (actionMessage()) {
+    <div class="notice glass-surface">{{ actionMessage() }}</div>
+  }
+
+  @if (isLoading() && !hasCampaignData()) {
+    <div class="state-panel glass-surface">
+      Loading campaign lab
+    </div>
+  } @else if (errorMessage() && !hasCampaignData()) {
+    <div class="state-panel state-panel--error glass-surface">{{ errorMessage() }}</div>
+  } @else {
+    @if (errorMessage()) {
+      <div class="notice notice--error glass-surface">{{ errorMessage() }}</div>
+    }
+
+    <div class="kpi-grid">
+      <app-glass-card>
+        <div class="kpi">
+          <span>Campaigns</span>
+          <strong>{{ campaigns().length }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Ready</span>
+          <strong>{{ readyCampaigns() }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Targets</span>
+          <strong>{{ targets().length }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Approved drafts</span>
+          <strong>{{ approvedDrafts() }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Queued</span>
+          <strong>{{ queuedOutbox() }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Failed sends</span>
+          <strong>{{ failedOutbox() }}</strong>
+        </div>
+      </app-glass-card>
+    </div>
+
+    <div class="campaigns-grid">
+      <div class="left-column">
+        <app-glass-card>
+          <section class="panel">
+            <div class="panel__header">
+              <h2>New campaign</h2>
+              <app-status-badge label="Editorial" tone="cyan" />
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Name</span>
+                <input
+                  type="text"
+                  [value]="campaignName()"
+                  (input)="campaignName.set($any($event.target).value)"
+                  placeholder="Madrid qualified outreach"
+                />
+              </label>
+              <label>
+                <span>Channel</span>
+                <select [value]="campaignChannel()" (change)="campaignChannel.set($any($event.target).value)">
+                  <option value="email">Email</option>
+                  <option value="manual">Manual</option>
+                  <option value="phone">Phone</option>
+                  <option value="dm">DM</option>
+                </select>
+              </label>
+              <label class="form-grid__wide">
+                <span>Description</span>
+                <input
+                  type="text"
+                  [value]="campaignDescription()"
+                  (input)="campaignDescription.set($any($event.target).value)"
+                  placeholder="Qualified restaurants with strong FUDI fit"
+                />
+              </label>
+              <label>
+                <span>Min score</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  [value]="minPriorityScore()"
+                  (input)="minPriorityScore.set(+$any($event.target).value)"
+                />
+              </label>
+              <label>
+                <span>Status gate</span>
+                <select [value]="pipelineStatus()" (change)="pipelineStatus.set($any($event.target).value)">
+                  <option value="">Any commercial status</option>
+                  <option value="QUALIFIED">Qualified</option>
+                  <option value="CONTACTED">Contacted</option>
+                  <option value="CONVERTED">Converted</option>
+                  <option value="REVIEWED">Reviewed</option>
+                </select>
+              </label>
+              <label>
+                <span>City</span>
+                <input type="text" [value]="city()" (input)="city.set($any($event.target).value)" placeholder="Madrid" />
+              </label>
+              <label>
+                <span>District</span>
+                <input
+                  type="text"
+                  [value]="district()"
+                  (input)="district.set($any($event.target).value)"
+                  placeholder="Salamanca"
+                />
+              </label>
+              <label>
+                <span>Model scored</span>
+                <select [value]="modelScored()" (change)="setBoolFilter('model', $any($event.target).value)">
+                  <option value="any">Any</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </label>
+              <label>
+                <span>Enriched</span>
+                <select [value]="enrichmentAvailable()" (change)="setBoolFilter('enrichment', $any($event.target).value)">
+                  <option value="any">Any</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </label>
+            </div>
+          </section>
+        </app-glass-card>
+
+        <app-glass-card>
+          <section class="panel">
+            <div class="panel__header">
+              <h2>Campaign list</h2>
+              <app-status-badge [label]="campaigns().length + ' loaded'" tone="green" />
+            </div>
+
+            @if (campaigns().length) {
+              <div class="campaign-list">
+                @for (campaign of campaigns(); track campaign.id) {
+                  <button
+                    class="campaign-row"
+                    type="button"
+                    [class.campaign-row--active]="selectedCampaign()?.id === campaign.id"
+                    (click)="selectCampaign(campaign)"
+                  >
+                    <span>
+                      <strong>{{ campaign.name }}</strong>
+                      <small>{{ campaignChannelLabels[campaign.channel] }} · {{ campaign.updatedAt | date: 'MMM d, HH:mm' }}</small>
+                    </span>
+                    <app-status-badge
+                      [label]="campaignStatusLabels[campaign.status]"
+                      [tone]="campaignTone(campaign.status)"
+                    />
+                  </button>
+                }
+              </div>
+            } @else {
+              <p class="empty-copy">No campaigns yet. Create the first commercial preparation batch.</p>
+            }
+          </section>
+        </app-glass-card>
+      </div>
+
+      <div class="workspace-column">
+        @if (selectedCampaign(); as campaign) {
+          <app-glass-card>
+            <section class="panel">
+              <div class="panel__header">
+                <div>
+                  <h2>{{ campaign.name }}</h2>
+                  <small>{{ campaign.description || 'No description' }}</small>
+                </div>
+                <app-status-badge [label]="campaignStatusLabels[campaign.status]" [tone]="campaignTone(campaign.status)" />
+              </div>
+
+              <div class="campaign-actions">
+                <button class="primary-button" type="button" (click)="selectTargets()" [disabled]="actionInFlight() !== ''">
+                  Select targets
+                </button>
+                <button class="primary-button" type="button" (click)="generateDrafts()" [disabled]="actionInFlight() !== ''">
+                  Generate drafts
+                </button>
+                <button class="primary-button" type="button" (click)="sendApprovedDrafts()" [disabled]="actionInFlight() !== ''">
+                  Send approved
+                </button>
+                <button class="ghost-button" type="button" (click)="scheduleApprovedDrafts()" [disabled]="actionInFlight() !== ''">
+                  Schedule +1h
+                </button>
+                <button class="ghost-button" type="button" (click)="updateCampaignStatus('ready')" [disabled]="actionInFlight() !== ''">
+                  Mark ready
+                </button>
+                <button class="ghost-button" type="button" (click)="updateCampaignStatus('paused')" [disabled]="actionInFlight() !== ''">
+                  Pause
+                </button>
+                <button class="ghost-button" type="button" (click)="updateCampaignStatus('archived')" [disabled]="actionInFlight() !== ''">
+                  Archive
+                </button>
+              </div>
+
+              <div class="criteria-grid">
+                <span>Score <strong>{{ campaign.targetCriteria.minPriorityScore ?? 'Any' }}</strong></span>
+                <span>Status <strong>{{ campaign.targetCriteria.pipelineStatus || 'Commercial gate' }}</strong></span>
+                <span>City <strong>{{ campaign.targetCriteria.city || 'Any' }}</strong></span>
+                <span>District <strong>{{ campaign.targetCriteria.district || 'Any' }}</strong></span>
+                <span>Model <strong>{{ campaign.targetCriteria.modelScored === null ? 'Any' : campaign.targetCriteria.modelScored ? 'Yes' : 'No' }}</strong></span>
+                <span>Enriched <strong>{{ campaign.targetCriteria.enrichmentAvailable === null ? 'Any' : campaign.targetCriteria.enrichmentAvailable ? 'Yes' : 'No' }}</strong></span>
+              </div>
+            </section>
+          </app-glass-card>
+
+          <div class="detail-grid">
+            <app-glass-card>
+              <section class="panel">
+                <div class="panel__header">
+                  <h2>Targets</h2>
+                  <app-status-badge [label]="approvedTargets() + ' approved'" tone="green" />
+                </div>
+                @if (targets().length) {
+                  <div class="target-list">
+                    @for (target of targets(); track target.id) {
+                      <article class="target-row">
+                        <div>
+                          <strong>{{ targetLeadName(target) }}</strong>
+                          <small>{{ target.lead?.city || 'City n/a' }} · score {{ target.snapshotLeadScore }}</small>
+                        </div>
+                        <app-status-badge
+                          [label]="campaignTargetStatusLabels[target.targetStatus]"
+                          [tone]="targetTone(target.targetStatus)"
+                        />
+                        <p>{{ target.inclusionReason.join(' ') }}</p>
+                      </article>
+                    }
+                  </div>
+                } @else {
+                  <p class="empty-copy">No targets selected yet. Run target selection for this campaign.</p>
+                }
+              </section>
+            </app-glass-card>
+
+            <app-glass-card>
+              <section class="panel">
+                <div class="panel__header">
+                  <h2>Draft review</h2>
+                  <app-status-badge [label]="pendingDrafts() + ' pending'" tone="cyan" />
+                </div>
+
+                @if (drafts().length) {
+                  <div class="draft-layout">
+                    <div class="draft-list">
+                      @for (draft of drafts(); track draft.id) {
+                        <button
+                          class="draft-row"
+                          type="button"
+                          [class.draft-row--active]="selectedDraft()?.id === draft.id"
+                          (click)="selectDraft(draft)"
+                        >
+                          <span>
+                            <strong>{{ draftLeadName(draft) }}</strong>
+                            <small>{{ draft.updatedAt | date: 'MMM d, HH:mm' }}</small>
+                          </span>
+                          <app-status-badge [label]="messageDraftStatusLabels[draft.draftStatus]" [tone]="draftTone(draft.draftStatus)" />
+                        </button>
+                      }
+                    </div>
+
+                    @if (selectedDraft(); as draft) {
+                      <div class="draft-editor">
+                        <label>
+                          <span>Subject</span>
+                          <input type="text" [value]="draftSubject()" (input)="draftSubject.set($any($event.target).value)" />
+                        </label>
+                        <label>
+                          <span>Body</span>
+                          <textarea [value]="draftBody()" (input)="draftBody.set($any($event.target).value)"></textarea>
+                        </label>
+                        <div class="draft-reasons">
+                          @for (reason of draft.generationReason; track reason) {
+                            <span>{{ reason }}</span>
+                          }
+                        </div>
+                        <div class="campaign-actions">
+                          <button class="ghost-button" type="button" (click)="saveDraft()" [disabled]="actionInFlight() !== ''">
+                            Save edit
+                          </button>
+                          <button class="primary-button" type="button" (click)="approveDraft(draft)" [disabled]="actionInFlight() !== ''">
+                            Approve
+                          </button>
+                          <button class="primary-button" type="button" (click)="queueDraft(draft)" [disabled]="actionInFlight() !== '' || draft.draftStatus !== 'approved'">
+                            Queue
+                          </button>
+                          <button class="primary-button" type="button" (click)="sendDraft(draft)" [disabled]="actionInFlight() !== '' || draft.draftStatus !== 'approved'">
+                            Send now
+                          </button>
+                          <button class="ghost-button ghost-button--danger" type="button" (click)="rejectDraft(draft)" [disabled]="actionInFlight() !== ''">
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <p class="empty-copy">No drafts yet. Generate drafts after targets are selected.</p>
+                }
+              </section>
+            </app-glass-card>
+          </div>
+
+          <div class="execution-grid">
+            <app-glass-card>
+              <section class="panel">
+                <div class="panel__header">
+                  <h2>Outbox</h2>
+                  <app-status-badge [label]="sentOutbox() + ' sent'" tone="green" />
+                </div>
+
+                @if (outbox().length) {
+                  <div class="outbox-list">
+                    @for (message of outbox(); track message.id) {
+                      <article class="outbox-row">
+                        <div>
+                          <strong>{{ messageLeadName(message) }}</strong>
+                          <small>{{ message.to || 'No recipient' }} · attempts {{ message.attemptCount }}</small>
+                        </div>
+                        <app-status-badge [label]="outboxStatusLabels[message.status]" [tone]="outboxTone(message.status)" />
+                        <p>{{ message.lastError || message.subject || 'Ready for outreach execution.' }}</p>
+                        <div class="row-actions">
+                          <button
+                            class="mini-button"
+                            type="button"
+                            (click)="retryMessage(message)"
+                            [disabled]="actionInFlight() !== '' || (message.status !== 'failed' && message.status !== 'queued')"
+                          >
+                            Retry
+                          </button>
+                          <button
+                            class="mini-button"
+                            type="button"
+                            (click)="cancelMessage(message)"
+                            [disabled]="actionInFlight() !== '' || message.status === 'sent' || message.status === 'cancelled'"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            class="mini-button mini-button--danger"
+                            type="button"
+                            (click)="suppressContact(message.to)"
+                            [disabled]="actionInFlight() !== '' || !message.to"
+                          >
+                            Suppress
+                          </button>
+                        </div>
+                      </article>
+                    }
+                  </div>
+                } @else {
+                  <p class="empty-copy">No outbox messages yet. Queue approved drafts or send a campaign.</p>
+                }
+              </section>
+            </app-glass-card>
+
+            <app-glass-card>
+              <section class="panel">
+                <div class="panel__header">
+                  <h2>Suppressions</h2>
+                  <app-status-badge [label]="suppressions().length + ' rules'" tone="coral" />
+                </div>
+
+                <div class="suppression-form">
+                  <label>
+                    <span>Email or domain</span>
+                    <input
+                      type="text"
+                      [value]="suppressionValue()"
+                      (input)="suppressionValue.set($any($event.target).value)"
+                      placeholder="owner@example.com"
+                    />
+                  </label>
+                  <label>
+                    <span>Reason</span>
+                    <input
+                      type="text"
+                      [value]="suppressionReason()"
+                      (input)="suppressionReason.set($any($event.target).value)"
+                    />
+                  </label>
+                  <button class="ghost-button ghost-button--danger" type="button" (click)="suppressContact()" [disabled]="actionInFlight() !== ''">
+                    Suppress contact
+                  </button>
+                </div>
+
+                @if (suppressions().length) {
+                  <div class="suppression-list">
+                    @for (suppression of suppressions(); track suppression.id) {
+                      <article>
+                        <div>
+                          <strong>{{ suppression.identityValue }}</strong>
+                          <small>{{ suppression.identityType }} · {{ suppression.createdAt | date: 'MMM d, HH:mm' }}</small>
+                        </div>
+                        <span>{{ suppression.reason }}</span>
+                        <button class="mini-button" type="button" (click)="deleteSuppression(suppression)" [disabled]="actionInFlight() !== ''">
+                          Remove
+                        </button>
+                      </article>
+                    }
+                  </div>
+                } @else {
+                  <p class="empty-copy">No contacts suppressed yet.</p>
+                }
+              </section>
+            </app-glass-card>
+          </div>
+
+          <app-glass-card>
+            <section class="panel">
+              <div class="panel__header">
+                <h2>Campaign events</h2>
+                <app-status-badge [label]="events().length + ' events'" tone="amber" />
+              </div>
+              @if (events().length) {
+                <div class="event-list">
+                  @for (event of events(); track event.id) {
+                    <article>
+                      <strong>{{ event.eventType }}</strong>
+                      <span>{{ eventPayload(event) }}</span>
+                      <small>{{ event.createdAt | date: 'MMM d, HH:mm' }}</small>
+                    </article>
+                  }
+                </div>
+              } @else {
+                <p class="empty-copy">No events registered yet.</p>
+              }
+            </section>
+          </app-glass-card>
+        } @else {
+          <div class="state-panel glass-surface">
+            <app-status-badge label="Ready" tone="cyan" />
+            Create or select a campaign to start.
+          </div>
+        }
+      </div>
+    </div>
+  }
+</section>
