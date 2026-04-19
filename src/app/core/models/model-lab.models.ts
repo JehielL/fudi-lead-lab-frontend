@@ -19,6 +19,43 @@ export interface ModelRegistryEntry {
   activatedAt?: string | null;
 }
 
+export interface ActiveModelConfig {
+  id: string;
+  modelType: ModelType;
+  modelId: string;
+  modelVersion: string;
+  updatedAt: string;
+  updatedBy: string;
+  model?: ModelRegistryEntry | null;
+}
+
+export interface PredictionRun {
+  id: string;
+  leadId: string;
+  modelId: string;
+  modelType: ModelType;
+  modelVersion: string;
+  inputFeatureSnapshotId?: string | null;
+  prediction: number;
+  confidence: number;
+  explanations: string[];
+  createdAt: string;
+  triggerType: string;
+}
+
+export interface LeadPredictionResponse {
+  leadId: string;
+  scoreBreakdown: Record<string, unknown>;
+  priorityScore: number;
+  confidence: number;
+  predictionRuns: PredictionRun[];
+}
+
+export interface BatchPredictionResponse {
+  predictedCount: number;
+  results: LeadPredictionResponse[];
+}
+
 export interface TrainingRun {
   id: string;
   status: TrainingStatus;

@@ -149,6 +149,12 @@
   gap: 6px;
 }
 
+.score-pack small {
+  flex-basis: 100%;
+  color: var(--fudi-muted);
+  font-size: 0.72rem;
+}
+
 .enrichment-cell {
   display: grid;
   gap: 5px;
@@ -182,6 +188,11 @@
 .score--low {
   border-color: rgba(255, 123, 114, 0.26);
   color: var(--fudi-coral);
+}
+
+.score--ai {
+  border-color: rgba(123, 220, 255, 0.32);
+  color: var(--fudi-cyan);
 }
 
 .state-panel {

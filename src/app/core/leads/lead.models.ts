@@ -40,6 +40,10 @@ export interface Lead {
   fitScore: number;
   confidence: number;
   scoreBreakdown: ScoreBreakdown;
+  scoreModelMetadata: Record<string, unknown>;
+  modelScored: boolean;
+  lastPredictedAt?: string | null;
+  lastPredictionTrigger?: string | null;
   enrichmentStatus: EnrichmentStatus;
   lastEnrichedAt?: string | null;
   lastEnrichmentError?: string | null;

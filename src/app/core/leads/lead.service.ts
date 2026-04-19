@@ -16,6 +16,7 @@ import {
   PageSnapshot,
   PipelineStatus,
 } from './lead.models';
+import { BatchPredictionResponse, LeadPredictionResponse, PredictionRun } from '../models/model-lab.models';
 
 @Injectable({ providedIn: 'root' })
 export class LeadService {
@@ -57,6 +58,21 @@ export class LeadService {
 
   recomputeScore(id: string): Observable<LeadScoreResponse> {
     return this.http.post<LeadScoreResponse>(`${this.baseUrl}/${id}/score/recompute`, {});
+  }
+
+  runPrediction(id: string): Observable<LeadPredictionResponse> {
+    return this.http.post<LeadPredictionResponse>(`${this.baseUrl}/${id}/predict`, {});
+  }
+
+  runBatchPrediction(leadIds: string[]): Observable<BatchPredictionResponse> {
+    return this.http.post<BatchPredictionResponse>(`${this.baseUrl}/predict/batch`, {
+      leadIds,
+      limit: leadIds.length || 50,
+    });
+  }
+
+  getPredictions(id: string): Observable<PredictionRun[]> {
+    return this.http.get<PredictionRun[]>(`${this.baseUrl}/${id}/predictions`);
   }
 
   runEnrichment(id: string): Observable<LeadEnrichmentSummary> {

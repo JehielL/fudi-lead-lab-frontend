@@ -54,6 +54,79 @@
       </section>
     </app-glass-card>
 
+    <app-glass-card>
+      <section class="panel intelligence-panel">
+        <div class="panel__header">
+          <div>
+            <h2>Intelligence</h2>
+            <span>
+              @if (latestPredictionDate()) {
+                Last inference {{ latestPredictionDate() | date: 'MMM d, y, HH:mm' }} · {{ currentLead.lastPredictionTrigger || 'manual' }}
+              } @else {
+                No model inference yet
+              }
+            </span>
+          </div>
+          <div class="panel-actions">
+            <button class="mini-button" type="button" (click)="runPrediction()" [disabled]="actionInFlight() !== ''">
+              Run prediction
+            </button>
+            <button class="mini-button" type="button" (click)="recomputeScore()" [disabled]="actionInFlight() !== ''">
+              Recompute rules
+            </button>
+          </div>
+        </div>
+
+        <div class="score-grid">
+          <div class="score-card {{ scoreTone(currentLead.priorityScore) }}">
+            <span>Priority</span>
+            <strong>{{ currentLead.priorityScore }}</strong>
+          </div>
+          <div class="score-card {{ scoreTone(currentLead.scoreBreakdown.newnessScore) }}">
+            <span>Newness</span>
+            <strong>{{ currentLead.scoreBreakdown.newnessScore }}</strong>
+          </div>
+          <div class="score-card {{ scoreTone(currentLead.scoreBreakdown.digitalGapScore) }}">
+            <span>Digital gap</span>
+            <strong>{{ currentLead.scoreBreakdown.digitalGapScore }}</strong>
+          </div>
+          <div class="score-card {{ scoreTone(currentLead.scoreBreakdown.contactabilityScore) }}">
+            <span>Contactability</span>
+            <strong>{{ currentLead.scoreBreakdown.contactabilityScore }}</strong>
+          </div>
+        </div>
+
+        @if (latestPredictions().length) {
+          <div class="signal-grid">
+            @for (run of latestPredictions(); track run.id) {
+              <article class="signal-card signal-card--active">
+                <div>
+                  <strong>{{ modelTypeLabels[run.modelType] }}</strong>
+                  <small>{{ run.modelVersion }}</small>
+                </div>
+                <span>{{ run.prediction }}</span>
+                <small>
+                  C {{ run.confidence }}
+                  @if (previousPredictionFor(run); as previous) {
+                    · Prev {{ previous.prediction }}
+                  }
+                </small>
+              </article>
+            }
+          </div>
+          <div class="explanation-list">
+            @for (run of latestPredictions(); track run.id) {
+              @for (item of run.explanations; track item) {
+                <p>{{ item }}</p>
+              }
+            }
+          </div>
+        } @else {
+          <p class="empty-copy">Run prediction to score this lead with active models.</p>
+        }
+      </section>
+    </app-glass-card>
+
     <div class="inspector-grid">
       <app-glass-card>
         <section class="panel">

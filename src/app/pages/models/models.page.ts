@@ -5,7 +5,9 @@ import { Observable, forkJoin } from 'rxjs';
 
 import { metricPercent, trainingTone } from '../../core/models/model-lab-format';
 import {
+  ActiveModelConfig,
   ModelRegistryEntry,
+  PredictionRun,
   TrainingRun,
   modelTypeLabels,
   trainingStatusLabels,
@@ -27,6 +29,8 @@ export class ModelsPage implements OnInit {
 
   readonly models = signal<ModelRegistryEntry[]>([]);
   readonly runs = signal<TrainingRun[]>([]);
+  readonly activeConfigs = signal<ActiveModelConfig[]>([]);
+  readonly predictionRuns = signal<PredictionRun[]>([]);
   readonly selectedModel = signal<ModelRegistryEntry | null>(null);
   readonly isLoading = signal(false);
   readonly actionInFlight = signal('');
@@ -34,6 +38,7 @@ export class ModelsPage implements OnInit {
   readonly actionMessage = signal('');
 
   readonly activeModels = computed(() => this.models().filter((model) => model.isActive));
+  readonly predictionsLastCount = computed(() => this.predictionRuns().length);
   readonly latestRun = computed(() => this.runs()[0] ?? null);
   readonly latestDatasetSize = computed(() => this.latestRun()?.datasetSize ?? 0);
   readonly modelTypeLabels = modelTypeLabels;
@@ -52,12 +57,16 @@ export class ModelsPage implements OnInit {
     forkJoin({
       models: this.modelService.listModels(),
       runs: this.modelService.listRuns(),
+      activeConfigs: this.modelService.listActiveModels(),
+      predictionRuns: this.modelService.listPredictionRuns(),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ models, runs }) => {
+        next: ({ models, runs, activeConfigs, predictionRuns }) => {
           this.models.set(models);
           this.runs.set(runs);
+          this.activeConfigs.set(activeConfigs);
+          this.predictionRuns.set(predictionRuns);
           this.selectedModel.set(models.find((model) => model.id === this.selectedModel()?.id) ?? models[0] ?? null);
           this.isLoading.set(false);
         },
@@ -73,7 +82,7 @@ export class ModelsPage implements OnInit {
   }
 
   activate(model: ModelRegistryEntry): void {
-    this.runAction(`activate-${model.id}`, () => this.modelService.activateModel(model.id), 'Model activated.');
+    this.runAction(`activate-${model.id}`, () => this.modelService.setActiveModel(model.modelType, model.id), 'Model activated.');
   }
 
   selectModel(model: ModelRegistryEntry): void {
@@ -82,6 +91,10 @@ export class ModelsPage implements OnInit {
 
   metric(model: ModelRegistryEntry, key: string): string {
     return metricPercent(model.metrics[key]);
+  }
+
+  activeConfigFor(model: ModelRegistryEntry): ActiveModelConfig | null {
+    return this.activeConfigs().find((config) => config.modelType === model.modelType) ?? null;
   }
 
   private runAction(actionName: string, action: () => Observable<unknown>, successMessage: string): void {

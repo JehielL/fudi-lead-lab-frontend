@@ -131,9 +131,15 @@
             }
           </span>
           <span class="score-pack">
+            @if (lead.modelScored) {
+              <span class="score score--ai">AI</span>
+            }
             <span class="score {{ scoreTone(lead.priorityScore) }}">P {{ lead.priorityScore }}</span>
             <span class="score {{ scoreTone(lead.fitScore) }}">F {{ lead.fitScore }}</span>
             <span class="score {{ scoreTone(lead.confidence) }}">C {{ lead.confidence }}</span>
+            @if (lead.lastPredictedAt) {
+              <small>{{ lead.lastPredictedAt | date: 'MMM d, HH:mm' }}</small>
+            }
           </span>
           <span class="muted">{{ lead.city || 'No city' }} · {{ lead.district || 'No district' }}</span>
           <span class="muted">{{ lead.updatedAt | date: 'MMM d, HH:mm' }}</span>

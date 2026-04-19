@@ -38,8 +38,8 @@
       </app-glass-card>
       <app-glass-card>
         <div class="kpi">
-          <span>Active</span>
-          <strong>{{ activeModels().length }}</strong>
+          <span>Active slots</span>
+          <strong>{{ activeConfigs().length }}</strong>
         </div>
       </app-glass-card>
       <app-glass-card>
@@ -50,8 +50,8 @@
       </app-glass-card>
       <app-glass-card>
         <div class="kpi">
-          <span>Dataset</span>
-          <strong>{{ latestDatasetSize() }}</strong>
+          <span>Predictions</span>
+          <strong>{{ predictionsLastCount() }}</strong>
         </div>
       </app-glass-card>
     </div>
@@ -94,6 +94,30 @@
       </app-glass-card>
 
       <div class="side-column">
+        <app-glass-card>
+          <section class="panel">
+            <div class="panel__header">
+              <h2>Active models</h2>
+              <app-status-badge [label]="activeConfigs().length + ' active'" tone="green" />
+            </div>
+            @if (activeConfigs().length) {
+              <div class="active-list">
+                @for (config of activeConfigs(); track config.modelType) {
+                  <article>
+                    <div>
+                      <strong>{{ modelTypeLabels[config.modelType] }}</strong>
+                      <small>{{ config.modelVersion }}</small>
+                    </div>
+                    <span>{{ config.updatedAt | date: 'MMM d, HH:mm' }}</span>
+                  </article>
+                }
+              </div>
+            } @else {
+              <p class="empty-copy">No active model slots configured yet.</p>
+            }
+          </section>
+        </app-glass-card>
+
         <app-glass-card>
           <section class="panel">
             <div class="panel__header">
@@ -147,6 +171,10 @@
                 <div>
                   <dt>Labels</dt>
                   <dd>{{ model.positiveCount }} positive · {{ model.negativeCount }} negative</dd>
+                </div>
+                <div>
+                  <dt>Active slot</dt>
+                  <dd>{{ activeConfigFor(model)?.modelId === model.id ? 'Serving predictions' : 'Not active' }}</dd>
                 </div>
               </dl>
               <div class="metric-grid">

@@ -6,6 +6,10 @@ import { forkJoin } from 'rxjs';
 
 import { scoreTone, statusTone } from '../../core/leads/lead-format';
 import {
+  PredictionRun,
+  modelTypeLabels,
+} from '../../core/models/model-lab.models';
+import {
   FeatureSnapshot,
   Lead,
   LeadActivity,
@@ -43,6 +47,7 @@ export class LeadInspectorPage implements OnInit {
   readonly enrichment = signal<LeadEnrichmentSummary | null>(null);
   readonly featureSnapshots = signal<FeatureSnapshot[]>([]);
   readonly pageSnapshots = signal<PageSnapshot[]>([]);
+  readonly predictions = signal<PredictionRun[]>([]);
   readonly isLoading = signal(false);
   readonly actionInFlight = signal('');
   readonly errorMessage = signal('');
@@ -58,8 +63,12 @@ export class LeadInspectorPage implements OnInit {
 
   readonly pipelineStatusLabels = pipelineStatusLabels;
   readonly enrichmentStatusLabels = enrichmentStatusLabels;
+  readonly modelTypeLabels = modelTypeLabels;
   readonly statusTone = statusTone;
   readonly scoreTone = scoreTone;
+  readonly latestPredictions = computed(() => this.predictions().slice(0, 4));
+  readonly previousPredictions = computed(() => this.predictions().slice(4, 8));
+  readonly latestPredictionDate = computed(() => this.latestPredictions()[0]?.createdAt ?? this.lead()?.lastPredictedAt ?? null);
   readonly latestFeatures = computed(() => {
     return this.enrichment()?.latestFeatureSnapshot?.features ?? this.featureSnapshots()[0]?.features ?? {};
   });
@@ -153,10 +162,11 @@ export class LeadInspectorPage implements OnInit {
       enrichment: this.leadService.getEnrichment(leadId),
       featureSnapshots: this.leadService.getFeatureSnapshots(leadId),
       pageSnapshots: this.leadService.getPageSnapshots(leadId),
+      predictions: this.leadService.getPredictions(leadId),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ lead, sources, activity, statusHistory, score, enrichment, featureSnapshots, pageSnapshots }) => {
+        next: ({ lead, sources, activity, statusHistory, score, enrichment, featureSnapshots, pageSnapshots, predictions }) => {
           this.lead.set(lead);
           this.sources.set(sources);
           this.activity.set(activity);
@@ -165,6 +175,7 @@ export class LeadInspectorPage implements OnInit {
           this.enrichment.set(enrichment);
           this.featureSnapshots.set(featureSnapshots);
           this.pageSnapshots.set(pageSnapshots);
+          this.predictions.set(predictions);
           this.isLoading.set(false);
         },
         error: () => {
@@ -190,6 +201,27 @@ export class LeadInspectorPage implements OnInit {
         },
         error: () => {
           this.errorMessage.set('No pudimos ejecutar el enrichment.');
+          this.actionInFlight.set('');
+        },
+      });
+  }
+
+  runPrediction(): void {
+    const lead = this.lead();
+    if (!lead) {
+      return;
+    }
+    this.actionInFlight.set('prediction');
+    this.leadService
+      .runPrediction(lead.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.actionInFlight.set('');
+          this.loadLead(lead.id);
+        },
+        error: () => {
+          this.errorMessage.set('No pudimos ejecutar la prediccion.');
           this.actionInFlight.set('');
         },
       });
@@ -247,6 +279,10 @@ export class LeadInspectorPage implements OnInit {
   featureNumber(key: string): number | null {
     const value = this.latestFeatures()[key];
     return typeof value === 'number' ? value : null;
+  }
+
+  previousPredictionFor(run: PredictionRun): PredictionRun | null {
+    return this.previousPredictions().find((previous) => previous.modelType === run.modelType) ?? null;
   }
 
   private booleanLabel(value: unknown): string {
