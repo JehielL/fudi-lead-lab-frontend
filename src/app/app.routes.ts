@@ -62,6 +62,11 @@ export const routes: Routes = [
         },
       },
       {
+        path: 'duplicates',
+        loadComponent: () =>
+          import('./pages/duplicates/duplicates.page').then((m) => m.DuplicatesPage),
+      },
+      {
         path: 'models',
         loadComponent: () =>
           import('./pages/placeholder/placeholder.page').then((m) => m.PlaceholderPage),

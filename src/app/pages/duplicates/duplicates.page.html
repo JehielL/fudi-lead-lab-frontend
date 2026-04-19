@@ -1,0 +1,161 @@
+<section class="duplicates-page">
+  <app-page-header
+    eyebrow="Data hygiene"
+    title="Duplicates"
+    description="Revision operativa de clusters duplicados antes de consolidar leads y entrenar modelos."
+    badge="Dedup review"
+  />
+
+  <div class="actions">
+    <button class="primary-button" type="button" (click)="recompute()" [disabled]="actionInFlight() !== ''">
+      Recompute
+    </button>
+    <button class="ghost-button" type="button" (click)="loadDuplicates()" [disabled]="isLoading()">Refresh</button>
+  </div>
+
+  @if (actionMessage()) {
+    <div class="notice glass-surface">{{ actionMessage() }}</div>
+  }
+
+  @if (isLoading() && !clusters().length) {
+    <div class="state-panel glass-surface">
+      <span class="loader"></span>
+      Loading duplicate review
+    </div>
+  } @else if (errorMessage() && !clusters().length) {
+    <div class="state-panel state-panel--error glass-surface">{{ errorMessage() }}</div>
+  } @else {
+    @if (errorMessage()) {
+      <div class="notice notice--error glass-surface">{{ errorMessage() }}</div>
+    }
+
+    <div class="kpi-grid">
+      <app-glass-card>
+        <div class="kpi">
+          <span>Open clusters</span>
+          <strong>{{ clusters().length }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Candidates</span>
+          <strong>{{ candidates().length }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>High confidence</span>
+          <strong>{{ highConfidenceCount() }}</strong>
+        </div>
+      </app-glass-card>
+    </div>
+
+    <div class="duplicates-grid">
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <h2>Clusters</h2>
+            <app-status-badge [label]="clusters().length + ' open'" tone="amber" />
+          </div>
+
+          @if (clusters().length) {
+            <div class="cluster-list">
+              @for (cluster of clusters(); track cluster.id) {
+                <button
+                  class="cluster-row"
+                  type="button"
+                  [class.cluster-row--active]="selectedCluster()?.id === cluster.id"
+                  (click)="selectCluster(cluster)"
+                >
+                  <span>
+                    <strong>{{ cluster.leads[0]?.name || 'Duplicate cluster' }}</strong>
+                    <small>{{ cluster.leads.length }} leads · {{ cluster.updatedAt | date: 'MMM d, HH:mm' }}</small>
+                  </span>
+                  <app-status-badge [label]="scoreLabel(cluster.score)" [tone]="cluster.score >= 0.9 ? 'green' : 'amber'" />
+                </button>
+              }
+            </div>
+          } @else {
+            <p class="empty-copy">No duplicate clusters are open. Run recompute when new leads arrive.</p>
+          }
+        </section>
+      </app-glass-card>
+
+      <div class="review-column">
+        @if (selectedCluster(); as cluster) {
+          <app-glass-card>
+            <section class="panel">
+              <div class="panel__header">
+                <div>
+                  <h2>Review cluster</h2>
+                  <small>{{ cluster.id }}</small>
+                </div>
+                <app-status-badge [label]="dedupStatusLabels[cluster.status]" [tone]="dedupTone(cluster.status)" />
+              </div>
+
+              <div class="decision-bar">
+                <label>
+                  <span>Primary lead</span>
+                  <select [value]="primaryLeadId()" (change)="primaryLeadId.set($any($event.target).value)">
+                    @for (lead of cluster.leads; track lead.id) {
+                      <option [value]="lead.id">{{ lead.name }}</option>
+                    }
+                  </select>
+                </label>
+                <div class="decision-actions">
+                  <button class="primary-button" type="button" (click)="mergeSelected()" [disabled]="actionInFlight() !== ''">
+                    Merge
+                  </button>
+                  <button class="ghost-button" type="button" (click)="ignoreSelected()" [disabled]="actionInFlight() !== ''">
+                    Ignore
+                  </button>
+                  <button class="ghost-button" type="button" (click)="markDistinct()" [disabled]="actionInFlight() !== ''">
+                    Mark distinct
+                  </button>
+                </div>
+              </div>
+
+              <div class="candidate-list">
+                @for (candidate of selectedCandidates(); track candidate.id) {
+                  <article>
+                    <strong>{{ scoreLabel(candidate.score) }}</strong>
+                    <span>{{ candidate.matchedFields.join(', ') || 'field similarity' }}</span>
+                    <small>{{ candidate.reasons.join(' ') || 'Similarity threshold matched.' }}</small>
+                  </article>
+                }
+              </div>
+            </section>
+          </app-glass-card>
+
+          <div class="compare-grid">
+            @for (lead of selectedLeads(); track lead.id) {
+              <app-glass-card>
+                <section class="panel">
+                  <div class="panel__header">
+                    <h2>{{ lead.name }}</h2>
+                    @if (primaryLeadId() === lead.id) {
+                      <app-status-badge label="Primary" tone="green" />
+                    }
+                  </div>
+                  <div class="field-list">
+                    @for (field of compareFields; track field.key) {
+                      <div>
+                        <span>{{ field.label }}</span>
+                        <strong>{{ fieldValue(lead, field.key) }}</strong>
+                      </div>
+                    }
+                  </div>
+                </section>
+              </app-glass-card>
+            }
+          </div>
+        } @else {
+          <div class="state-panel glass-surface">
+            <app-status-badge label="Clean" tone="green" />
+            No cluster selected.
+          </div>
+        }
+      </div>
+    </div>
+  }
+</section>
