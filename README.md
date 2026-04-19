@@ -27,6 +27,18 @@ Implemented foundation:
 - Main shell with topbar and sidebar
 - Placeholder routes for Overview, Discovery, Lead Inspector, Campaigns, Models and Ops
 
+## PR2-FE-DISCOVERY-QUEUE
+
+Implemented lead workflow:
+
+- `/discovery` consumes `GET /api/v1/leads`
+- Search, status, city and district filters
+- Priority, fit and confidence score chips
+- Loading, empty and error states
+- Clickable lead rows
+- `/lead-inspector/:id` consumes lead detail, sources and activity endpoints
+- Liquid glass panels for identity, contact, location, scores, sources and activity
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:

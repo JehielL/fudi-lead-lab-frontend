@@ -32,13 +32,7 @@ export const routes: Routes = [
       {
         path: 'discovery',
         loadComponent: () =>
-          import('./pages/placeholder/placeholder.page').then((m) => m.PlaceholderPage),
-        data: {
-          eyebrow: 'Market sensing',
-          title: 'Discovery',
-          description: 'Espacio reservado para descubrimiento de cuentas, segmentos y demanda.',
-          badge: 'Placeholder',
-        },
+          import('./pages/discovery/discovery.page').then((m) => m.DiscoveryPage),
       },
       {
         path: 'lead-inspector',
@@ -50,6 +44,11 @@ export const routes: Routes = [
           description: 'Base preparada para inspeccionar leads cuando entre la logica de negocio.',
           badge: 'Placeholder',
         },
+      },
+      {
+        path: 'lead-inspector/:id',
+        loadComponent: () =>
+          import('./pages/lead-inspector/lead-inspector.page').then((m) => m.LeadInspectorPage),
       },
       {
         path: 'campaigns',

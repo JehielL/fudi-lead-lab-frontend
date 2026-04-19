@@ -1,0 +1,162 @@
+<section class="inspector-page">
+  <a class="back-link" routerLink="/discovery">Back to discovery</a>
+
+  <app-page-header
+    eyebrow="Signal detail"
+    [title]="pageTitle()"
+    [description]="pageDescription()"
+    badge="Lead inspector"
+  />
+
+  @if (isLoading()) {
+    <div class="state-panel glass-surface">
+      <span class="loader"></span>
+      Loading lead profile
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-panel state-panel--error glass-surface">
+      {{ errorMessage() }}
+    </div>
+  } @else if (lead(); as currentLead) {
+    <div class="inspector-grid">
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <app-status-badge
+              [label]="pipelineStatusLabels[currentLead.pipelineStatus]"
+              [tone]="statusTone(currentLead.pipelineStatus)"
+            />
+            <span>{{ currentLead.updatedAt | date: 'MMM d, y, HH:mm' }}</span>
+          </div>
+          <h2>{{ currentLead.name }}</h2>
+          <dl class="detail-list">
+            <div>
+              <dt>Normalized</dt>
+              <dd>{{ currentLead.normalizedName }}</dd>
+            </div>
+            <div>
+              <dt>Business type</dt>
+              <dd>{{ currentLead.businessType }}</dd>
+            </div>
+            <div>
+              <dt>Active</dt>
+              <dd>{{ currentLead.isActive ? 'Yes' : 'No' }}</dd>
+            </div>
+          </dl>
+        </section>
+      </app-glass-card>
+
+      <app-glass-card>
+        <section class="panel">
+          <h2>Scores</h2>
+          <div class="score-grid">
+            <div class="score-card {{ scoreTone(currentLead.priorityScore) }}">
+              <span>Priority</span>
+              <strong>{{ currentLead.priorityScore }}</strong>
+            </div>
+            <div class="score-card {{ scoreTone(currentLead.fitScore) }}">
+              <span>Fit</span>
+              <strong>{{ currentLead.fitScore }}</strong>
+            </div>
+            <div class="score-card {{ scoreTone(currentLead.confidence) }}">
+              <span>Confidence</span>
+              <strong>{{ currentLead.confidence }}</strong>
+            </div>
+          </div>
+        </section>
+      </app-glass-card>
+
+      <app-glass-card>
+        <section class="panel">
+          <h2>Contact</h2>
+          <dl class="detail-list">
+            <div>
+              <dt>Website</dt>
+              <dd>{{ currentLead.website || 'Not captured' }}</dd>
+            </div>
+            <div>
+              <dt>Instagram</dt>
+              <dd>{{ currentLead.instagram || 'Not captured' }}</dd>
+            </div>
+            <div>
+              <dt>Phone</dt>
+              <dd>{{ currentLead.phone || 'Not captured' }}</dd>
+            </div>
+            <div>
+              <dt>Email</dt>
+              <dd>{{ currentLead.email || 'Not captured' }}</dd>
+            </div>
+          </dl>
+        </section>
+      </app-glass-card>
+
+      <app-glass-card>
+        <section class="panel">
+          <h2>Location</h2>
+          <dl class="detail-list">
+            <div>
+              <dt>Address</dt>
+              <dd>{{ currentLead.address || 'Not captured' }}</dd>
+            </div>
+            <div>
+              <dt>City</dt>
+              <dd>{{ currentLead.city || 'Not captured' }}</dd>
+            </div>
+            <div>
+              <dt>District</dt>
+              <dd>{{ currentLead.district || 'Not captured' }}</dd>
+            </div>
+            <div>
+              <dt>Country</dt>
+              <dd>{{ currentLead.countryCode }}</dd>
+            </div>
+          </dl>
+        </section>
+      </app-glass-card>
+
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <h2>Sources</h2>
+            <app-status-badge [label]="sources().length + ' linked'" tone="cyan" />
+          </div>
+          @if (sources().length) {
+            <div class="timeline">
+              @for (source of sources(); track source.id) {
+                <article>
+                  <strong>{{ source.sourceType }}</strong>
+                  <p>{{ source.sourceUrl || source.externalId || 'Captured source' }}</p>
+                  <small>{{ source.capturedAt | date: 'MMM d, y, HH:mm' }}</small>
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="empty-copy">No sources captured for this lead yet.</p>
+          }
+        </section>
+      </app-glass-card>
+
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <h2>Activity</h2>
+            <app-status-badge [label]="activity().length + ' events'" tone="amber" />
+          </div>
+          @if (activity().length) {
+            <div class="timeline">
+              @for (event of activity(); track event.id) {
+                <article>
+                  <strong>{{ event.activityType }}</strong>
+                  <p>{{ event.description }}</p>
+                  <small>{{ event.channel || 'internal' }} · {{ event.performedBy }} · {{ event.createdAt | date: 'MMM d, y, HH:mm' }}</small>
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="empty-copy">No activity has been registered for this lead yet.</p>
+          }
+        </section>
+      </app-glass-card>
+    </div>
+  }
+</section>

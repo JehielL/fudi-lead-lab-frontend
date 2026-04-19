@@ -1,0 +1,137 @@
+<section class="discovery-page">
+  <app-page-header
+    eyebrow="Market sensing"
+    title="Discovery"
+    description="Cola operativa de restaurantes potenciales con estado, ubicacion y senales de prioridad."
+    badge="Live leads"
+  />
+
+  <app-glass-card>
+    <form class="filters" (ngSubmit)="applyFilters()">
+      <label class="field field--search">
+        <span>Search</span>
+        <input
+          type="search"
+          [ngModel]="q()"
+          (ngModelChange)="q.set($event)"
+          name="q"
+          placeholder="Name, city or district"
+        />
+      </label>
+
+      <label class="field">
+        <span>Status</span>
+        <select
+          [ngModel]="pipelineStatus()"
+          (ngModelChange)="pipelineStatus.set($event)"
+          name="pipelineStatus"
+        >
+          @for (option of statusOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="field">
+        <span>City</span>
+        <input [ngModel]="city()" (ngModelChange)="city.set($event)" name="city" placeholder="Madrid" />
+      </label>
+
+      <label class="field">
+        <span>District</span>
+        <input
+          [ngModel]="district()"
+          (ngModelChange)="district.set($event)"
+          name="district"
+          placeholder="Centro"
+        />
+      </label>
+
+      <div class="filter-actions">
+        <button class="ghost-button" type="button" (click)="clearFilters()">Clear</button>
+        <button class="primary-button" type="submit">Apply</button>
+      </div>
+    </form>
+  </app-glass-card>
+
+  <div class="queue-toolbar">
+    <div>
+      <p>{{ total() }} leads</p>
+      <strong>Prioritized by latest movement</strong>
+    </div>
+    <div class="sort-controls">
+      <select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event); loadLeads()" name="sortBy">
+        <option value="updatedAt">Updated</option>
+        <option value="priorityScore">Priority</option>
+        <option value="fitScore">Fit</option>
+        <option value="confidence">Confidence</option>
+        <option value="name">Name</option>
+      </select>
+      <select
+        [ngModel]="sortDirection()"
+        (ngModelChange)="sortDirection.set($event); loadLeads()"
+        name="sortDirection"
+      >
+        <option value="desc">Desc</option>
+        <option value="asc">Asc</option>
+      </select>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-panel glass-surface">
+      <span class="loader"></span>
+      Loading discovery queue
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-panel state-panel--error glass-surface">
+      {{ errorMessage() }}
+      <button class="ghost-button" type="button" (click)="loadLeads()">Retry</button>
+    </div>
+  } @else if (!leads().length) {
+    <div class="state-panel glass-surface">
+      <app-status-badge label="Empty" tone="amber" />
+      No leads match this view yet.
+    </div>
+  } @else {
+    <div class="lead-list" aria-label="Lead discovery queue">
+      <div class="lead-list__head">
+        <span>Lead</span>
+        <span>Status</span>
+        <span>Scores</span>
+        <span>Location</span>
+        <span>Updated</span>
+      </div>
+
+      @for (lead of leads(); track lead.id) {
+        <button class="lead-row glass-surface" type="button" (click)="openLead(lead)">
+          <span class="lead-identity">
+            <strong>{{ lead.name }}</strong>
+            <small>{{ lead.businessType || 'restaurant' }}</small>
+          </span>
+          <app-status-badge
+            [label]="pipelineStatusLabels[lead.pipelineStatus]"
+            [tone]="statusTone(lead.pipelineStatus)"
+          />
+          <span class="score-pack">
+            <span class="score {{ scoreTone(lead.priorityScore) }}">P {{ lead.priorityScore }}</span>
+            <span class="score {{ scoreTone(lead.fitScore) }}">F {{ lead.fitScore }}</span>
+            <span class="score {{ scoreTone(lead.confidence) }}">C {{ lead.confidence }}</span>
+          </span>
+          <span class="muted">{{ lead.city || 'No city' }} · {{ lead.district || 'No district' }}</span>
+          <span class="muted">{{ lead.updatedAt | date: 'MMM d, HH:mm' }}</span>
+        </button>
+      }
+    </div>
+
+    <div class="pagination">
+      <button class="ghost-button" type="button" (click)="previousPage()" [disabled]="page() <= 1">
+        Previous
+      </button>
+      <span>Page {{ page() }} of {{ totalPages() }}</span>
+      <button class="ghost-button" type="button" (click)="nextPage()" [disabled]="page() >= totalPages()">
+        Next
+      </button>
+    </div>
+  }
+</section>
