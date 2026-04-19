@@ -1,0 +1,65 @@
+<main class="login-page">
+  <section class="login-hero" aria-label="FÜDI Lead Lab">
+    <div class="login-hero__content">
+      <app-status-badge label="Liquid glass shell" tone="green" />
+      <p class="login-hero__kicker">FÜDI Lead Lab</p>
+      <h1>Lead intelligence with a sharper signal.</h1>
+      <p>
+        Accede al laboratorio operativo para descubrir, inspeccionar y activar oportunidades con una
+        base visual limpia y preparada para escalar.
+      </p>
+    </div>
+  </section>
+
+  <app-glass-card>
+    <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
+      <div>
+        <p class="login-form__eyebrow">Secure access</p>
+        <h2>Iniciar sesion</h2>
+        <p class="login-form__hint">Usa tus credenciales de FÜDI para continuar.</p>
+      </div>
+
+      <label class="field">
+        <span>Email</span>
+        <input
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          placeholder="admin@fudi.local"
+        />
+        @if (form.controls.email.invalid && form.controls.email.touched) {
+          <small>Introduce un email valido.</small>
+        }
+      </label>
+
+      <label class="field">
+        <span>Password</span>
+        <input
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+          placeholder="********"
+        />
+        @if (form.controls.password.invalid && form.controls.password.touched) {
+          <small>La password es obligatoria.</small>
+        }
+      </label>
+
+      @if (errorMessage()) {
+        <p class="login-form__error">{{ errorMessage() }}</p>
+      }
+
+      <button class="submit-button" type="submit" [disabled]="form.invalid || isSubmitting()">
+        @if (isSubmitting()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Entrando
+        } @else {
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M12 3 4 7v6c0 4.4 3.4 8.2 8 9 4.6-.8 8-4.6 8-9V7l-8-4Zm0 2.2 6 3V13c0 3.15-2.25 6.05-6 6.86C8.25 19.05 6 16.15 6 13V8.2l6-3ZM11 14.4l5-5 1.4 1.4L11 17.2l-3.4-3.4L9 12.4l2 2Z"></path>
+          </svg>
+          Entrar al lab
+        }
+      </button>
+    </form>
+  </app-glass-card>
+</main>

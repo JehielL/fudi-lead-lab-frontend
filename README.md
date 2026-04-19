@@ -1,16 +1,31 @@
-# FudiLeadLabFrontend
+# Fudi Lead Lab Frontend
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.7.
 
 ## Development server
 
-To start a local development server, run:
+Start the backend first on `http://127.0.0.1:8000`, then run:
 
 ```bash
-ng serve
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+The frontend runs at `http://127.0.0.1:4200/`. Local API calls use `proxy.conf.json`, so `/api/v1` is proxied to the backend.
+
+Temporary local credentials for PR1:
+
+- Email: `admin@fudi.local`
+- Password: `admin`
+
+## PR1-FE-APP-SHELL
+
+Implemented foundation:
+
+- Login page wired to `POST /api/v1/auth/login`
+- Bearer token storage and HTTP interceptor
+- Auth guard for protected routes
+- Main shell with topbar and sidebar
+- Placeholder routes for Overview, Discovery, Lead Inspector, Campaigns, Models and Ops
 
 ## Code scaffolding
 

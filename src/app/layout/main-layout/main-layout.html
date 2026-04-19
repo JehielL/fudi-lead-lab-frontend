@@ -1,0 +1,61 @@
+<div class="app-shell">
+  <aside class="sidebar glass-surface" aria-label="Primary navigation">
+    <a class="brand" routerLink="/overview" aria-label="FÜDI Lead Lab overview">
+      <span class="brand__mark">FÜ</span>
+      <span>
+        <strong>FÜDI</strong>
+        <small>Lead Lab</small>
+      </span>
+    </a>
+
+    <nav class="sidebar__nav">
+      @for (item of navItems; track item.path) {
+        <a
+          class="nav-item"
+          [routerLink]="item.path"
+          routerLinkActive="nav-item--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path [attr.d]="item.icon"></path>
+          </svg>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar__footer">
+      <app-status-badge label="API linked" tone="cyan" />
+      <p>PR1-FE-APP-SHELL</p>
+    </div>
+  </aside>
+
+  <section class="shell-main">
+    <header class="topbar glass-surface">
+      <div>
+        <p class="topbar__eyebrow">Workspace</p>
+        <strong>FÜDI Lead Lab</strong>
+      </div>
+
+      <div class="topbar__user">
+        <div class="user-chip" aria-label="Authenticated user">
+          <span class="user-chip__avatar">{{ initials() }}</span>
+          <span>
+            <strong>{{ displayName() }}</strong>
+            <small>{{ displayMeta() }}</small>
+          </span>
+        </div>
+
+        <button class="icon-button" type="button" (click)="logout()" aria-label="Logout" title="Logout">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M10 17v-2h4V9h-4V7h6v10h-6Zm-2 4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7v2H8v14h7v2H8Zm8.5-5.5L15.1 14.1 17.2 12l-2.1-2.1 1.4-1.4L21 12l-4.5 3.5Z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="shell-content">
+      <router-outlet />
+    </main>
+  </section>
+</div>

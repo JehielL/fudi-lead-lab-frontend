@@ -1,0 +1,34 @@
+<section class="placeholder-page">
+  <app-page-header
+    [eyebrow]="data().eyebrow"
+    [title]="data().title"
+    [description]="data().description"
+    [badge]="data().badge"
+  />
+
+  <div class="placeholder-grid">
+    <app-glass-card>
+      <div class="metric">
+        <app-status-badge label="Foundation" tone="green" />
+        <strong>Visual system online</strong>
+        <p>Tokens, glass panels, shell navigation and protected routing are ready for feature work.</p>
+      </div>
+    </app-glass-card>
+
+    <app-glass-card>
+      <div class="metric">
+        <app-status-badge label="Auth" tone="cyan" />
+        <strong>Session aware</strong>
+        <p>Login, bearer token injection, authenticated user loading and logout are wired.</p>
+      </div>
+    </app-glass-card>
+
+    <app-glass-card>
+      <div class="metric">
+        <app-status-badge label="Next" tone="amber" />
+        <strong>Ready for lead logic</strong>
+        <p>This area intentionally avoids tables, charts and lead workflows until the next phase.</p>
+      </div>
+    </app-glass-card>
+  </div>
+</section>
