@@ -53,13 +53,7 @@ export const routes: Routes = [
       {
         path: 'campaigns',
         loadComponent: () =>
-          import('./pages/placeholder/placeholder.page').then((m) => m.PlaceholderPage),
-        data: {
-          eyebrow: 'Activation',
-          title: 'Campaigns',
-          description: 'Vista inicial para coordinar campanas y experimentos comerciales.',
-          badge: 'Placeholder',
-        },
+          import('./pages/campaigns/campaigns.page').then((m) => m.CampaignsPage),
       },
       {
         path: 'duplicates',
