@@ -69,13 +69,7 @@ export const routes: Routes = [
       {
         path: 'models',
         loadComponent: () =>
-          import('./pages/placeholder/placeholder.page').then((m) => m.PlaceholderPage),
-        data: {
-          eyebrow: 'AI layer',
-          title: 'Models',
-          description: 'Zona futura para modelos, scoring y configuracion de inteligencia.',
-          badge: 'Placeholder',
-        },
+          import('./pages/models/models.page').then((m) => m.ModelsPage),
       },
       {
         path: 'ops',

@@ -1,0 +1,166 @@
+<section class="models-page">
+  <app-page-header
+    eyebrow="Model lab"
+    title="Models"
+    description="Laboratorio local para entrenar, comparar y activar modelos iniciales de scoring."
+    badge="Training foundation"
+  />
+
+  <div class="actions">
+    <button class="primary-button" type="button" (click)="trainModels()" [disabled]="actionInFlight() !== ''">
+      Train models
+    </button>
+    <button class="ghost-button" type="button" (click)="loadModelLab()" [disabled]="isLoading()">Refresh</button>
+  </div>
+
+  @if (actionMessage()) {
+    <div class="notice glass-surface">{{ actionMessage() }}</div>
+  }
+
+  @if (isLoading() && !models().length) {
+    <div class="state-panel glass-surface">
+      <span class="loader"></span>
+      Loading model lab
+    </div>
+  } @else if (errorMessage() && !models().length) {
+    <div class="state-panel state-panel--error glass-surface">{{ errorMessage() }}</div>
+  } @else {
+    @if (errorMessage()) {
+      <div class="notice notice--error glass-surface">{{ errorMessage() }}</div>
+    }
+
+    <div class="kpi-grid">
+      <app-glass-card>
+        <div class="kpi">
+          <span>Models</span>
+          <strong>{{ models().length }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Active</span>
+          <strong>{{ activeModels().length }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Runs</span>
+          <strong>{{ runs().length }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Dataset</span>
+          <strong>{{ latestDatasetSize() }}</strong>
+        </div>
+      </app-glass-card>
+    </div>
+
+    <div class="models-grid">
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <h2>Registry</h2>
+            <app-status-badge [label]="models().length + ' models'" tone="cyan" />
+          </div>
+
+          @if (models().length) {
+            <div class="model-table">
+              <div class="model-table__head">
+                <span>Type</span>
+                <span>Algorithm</span>
+                <span>Accuracy</span>
+                <span>Samples</span>
+                <span>Active</span>
+                <span></span>
+              </div>
+              @for (model of models(); track model.id) {
+                <button class="model-row" type="button" (click)="selectModel(model)">
+                  <span>{{ modelTypeLabels[model.modelType] }}</span>
+                  <span>{{ model.algorithm }}</span>
+                  <span>{{ metric(model, 'accuracy') }}</span>
+                  <span>{{ model.sampleCount }}</span>
+                  <app-status-badge [label]="model.isActive ? 'Active' : 'Ready'" [tone]="model.isActive ? 'green' : 'muted'" />
+                  <span class="mini-action" (click)="$event.stopPropagation(); activate(model)">
+                    {{ model.isActive ? 'Active' : 'Activate' }}
+                  </span>
+                </button>
+              }
+            </div>
+          } @else {
+            <p class="empty-copy">No models trained yet. Launch the first training run.</p>
+          }
+        </section>
+      </app-glass-card>
+
+      <div class="side-column">
+        <app-glass-card>
+          <section class="panel">
+            <div class="panel__header">
+              <h2>Runs</h2>
+              <app-status-badge [label]="runs().length + ' runs'" tone="amber" />
+            </div>
+            @if (runs().length) {
+              <div class="run-list">
+                @for (run of runs(); track run.id) {
+                  <article>
+                    <div>
+                      <strong>{{ run.startedAt | date: 'MMM d, HH:mm' }}</strong>
+                      <small>{{ run.triggeredBy }} · {{ run.datasetSize }} samples</small>
+                    </div>
+                    <app-status-badge [label]="trainingStatusLabels[run.status]" [tone]="trainingTone(run.status)" />
+                  </article>
+                }
+              </div>
+            } @else {
+              <p class="empty-copy">No training runs yet.</p>
+            }
+          </section>
+        </app-glass-card>
+
+        <app-glass-card>
+          <section class="panel">
+            <div class="panel__header">
+              <h2>Detail</h2>
+              @if (selectedModel(); as model) {
+                <app-status-badge [label]="model.isActive ? 'Active' : 'Ready'" [tone]="model.isActive ? 'green' : 'cyan'" />
+              }
+            </div>
+            @if (selectedModel(); as model) {
+              <dl class="detail-list">
+                <div>
+                  <dt>Version</dt>
+                  <dd>{{ model.version }}</dd>
+                </div>
+                <div>
+                  <dt>Type</dt>
+                  <dd>{{ modelTypeLabels[model.modelType] }}</dd>
+                </div>
+                <div>
+                  <dt>Algorithm</dt>
+                  <dd>{{ model.algorithm }}</dd>
+                </div>
+                <div>
+                  <dt>Trained</dt>
+                  <dd>{{ model.trainedAt | date: 'MMM d, y, HH:mm' }}</dd>
+                </div>
+                <div>
+                  <dt>Labels</dt>
+                  <dd>{{ model.positiveCount }} positive · {{ model.negativeCount }} negative</dd>
+                </div>
+              </dl>
+              <div class="metric-grid">
+                <span>Accuracy <strong>{{ metric(model, 'accuracy') }}</strong></span>
+                <span>Precision <strong>{{ metric(model, 'precision') }}</strong></span>
+                <span>Recall <strong>{{ metric(model, 'recall') }}</strong></span>
+                <span>F1 <strong>{{ metric(model, 'f1') }}</strong></span>
+              </div>
+            } @else {
+              <p class="empty-copy">Select a model to inspect metrics.</p>
+            }
+          </section>
+        </app-glass-card>
+      </div>
+    </div>
+  }
+</section>
