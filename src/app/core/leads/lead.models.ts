@@ -1,11 +1,20 @@
 export type PipelineStatus =
-  | 'new'
-  | 'reviewing'
-  | 'qualified'
-  | 'contacted'
-  | 'won'
-  | 'lost'
-  | 'discarded';
+  | 'DETECTED'
+  | 'REVIEWED'
+  | 'QUALIFIED'
+  | 'CONTACTED'
+  | 'CONVERTED'
+  | 'PAUSED'
+  | 'DISCARDED';
+
+export interface ScoreBreakdown {
+  newnessScore: number;
+  digitalGapScore: number;
+  fitScore: number;
+  contactabilityScore: number;
+  priorityScore: number;
+  explanation: string[];
+}
 
 export interface Lead {
   id: string;
@@ -22,9 +31,13 @@ export interface Lead {
   district?: string | null;
   countryCode: string;
   pipelineStatus: PipelineStatus;
+  statusStageIndex: number;
+  statusLabel: string;
+  statusUpdatedAt: string;
   priorityScore: number;
   fitScore: number;
   confidence: number;
+  scoreBreakdown: ScoreBreakdown;
   isActive: boolean;
   isDiscarded: boolean;
   createdAt: string;
@@ -72,12 +85,30 @@ export interface LeadActivity {
   createdAt: string;
 }
 
+export interface LeadStatusHistory {
+  id: string;
+  leadId: string;
+  fromStatus?: PipelineStatus | null;
+  toStatus: PipelineStatus;
+  reason?: string | null;
+  changedBy: string;
+  createdAt: string;
+}
+
+export interface LeadScoreResponse {
+  leadId: string;
+  scoreBreakdown: ScoreBreakdown;
+  priorityScore: number;
+  fitScore: number;
+  confidence: number;
+}
+
 export const pipelineStatusLabels: Record<PipelineStatus, string> = {
-  new: 'New',
-  reviewing: 'Reviewing',
-  qualified: 'Qualified',
-  contacted: 'Contacted',
-  won: 'Won',
-  lost: 'Lost',
-  discarded: 'Discarded',
+  DETECTED: 'Detected',
+  REVIEWED: 'Reviewed',
+  QUALIFIED: 'Qualified',
+  CONTACTED: 'Contacted',
+  CONVERTED: 'Converted',
+  PAUSED: 'Paused',
+  DISCARDED: 'Discarded',
 };

@@ -18,6 +18,42 @@
       {{ errorMessage() }}
     </div>
   } @else if (lead(); as currentLead) {
+    <app-glass-card>
+      <section class="panel status-panel">
+        <div class="panel__header">
+          <app-status-badge
+            [label]="pipelineStatusLabels[currentLead.pipelineStatus]"
+            [tone]="statusTone(currentLead.pipelineStatus)"
+          />
+          <span>Status updated {{ currentLead.statusUpdatedAt | date: 'MMM d, y, HH:mm' }}</span>
+        </div>
+        <app-lead-progress-tracker
+          [currentStatus]="currentLead.pipelineStatus"
+          variant="full"
+          [isPaused]="currentLead.pipelineStatus === 'PAUSED'"
+          [isDiscarded]="currentLead.pipelineStatus === 'DISCARDED' || currentLead.isDiscarded"
+        />
+        <div class="status-actions">
+          @if (nextStatus(); as targetStatus) {
+            <button
+              class="primary-button"
+              type="button"
+              (click)="transition(targetStatus)"
+              [disabled]="actionInFlight() !== ''"
+            >
+              Move to {{ pipelineStatusLabels[targetStatus] }}
+            </button>
+          }
+          <button class="ghost-button" type="button" (click)="transition('PAUSED')" [disabled]="actionInFlight() !== ''">
+            Pause
+          </button>
+          <button class="danger-button" type="button" (click)="transition('DISCARDED')" [disabled]="actionInFlight() !== ''">
+            Discard
+          </button>
+        </div>
+      </section>
+    </app-glass-card>
+
     <div class="inspector-grid">
       <app-glass-card>
         <section class="panel">
@@ -48,7 +84,12 @@
 
       <app-glass-card>
         <section class="panel">
-          <h2>Scores</h2>
+          <div class="panel__header">
+            <h2>Scores</h2>
+            <button class="mini-button" type="button" (click)="recomputeScore()" [disabled]="actionInFlight() !== ''">
+              Recompute
+            </button>
+          </div>
           <div class="score-grid">
             <div class="score-card {{ scoreTone(currentLead.priorityScore) }}">
               <span>Priority</span>
@@ -63,6 +104,18 @@
               <strong>{{ currentLead.confidence }}</strong>
             </div>
           </div>
+          @if (score(); as currentScore) {
+            <div class="breakdown-grid">
+              <span>Newness <strong>{{ currentScore.scoreBreakdown.newnessScore }}</strong></span>
+              <span>Digital gap <strong>{{ currentScore.scoreBreakdown.digitalGapScore }}</strong></span>
+              <span>Contactability <strong>{{ currentScore.scoreBreakdown.contactabilityScore }}</strong></span>
+            </div>
+            <div class="explanation-list">
+              @for (item of currentScore.scoreBreakdown.explanation; track item) {
+                <p>{{ item }}</p>
+              }
+            </div>
+          }
         </section>
       </app-glass-card>
 
@@ -154,6 +207,28 @@
             </div>
           } @else {
             <p class="empty-copy">No activity has been registered for this lead yet.</p>
+          }
+        </section>
+      </app-glass-card>
+
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <h2>Status history</h2>
+            <app-status-badge [label]="statusHistory().length + ' changes'" tone="cyan" />
+          </div>
+          @if (statusHistory().length) {
+            <div class="timeline">
+              @for (event of statusHistory(); track event.id) {
+                <article>
+                  <strong>{{ event.fromStatus || 'Start' }} -> {{ event.toStatus }}</strong>
+                  <p>{{ event.reason || 'No reason captured.' }}</p>
+                  <small>{{ event.changedBy }} · {{ event.createdAt | date: 'MMM d, y, HH:mm' }}</small>
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="empty-copy">No status transitions registered yet.</p>
           }
         </section>
       </app-glass-card>

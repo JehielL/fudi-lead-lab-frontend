@@ -98,6 +98,7 @@
       <div class="lead-list__head">
         <span>Lead</span>
         <span>Status</span>
+        <span>Stage</span>
         <span>Scores</span>
         <span>Location</span>
         <span>Updated</span>
@@ -112,6 +113,12 @@
           <app-status-badge
             [label]="pipelineStatusLabels[lead.pipelineStatus]"
             [tone]="statusTone(lead.pipelineStatus)"
+          />
+          <app-lead-progress-tracker
+            [currentStatus]="lead.pipelineStatus"
+            variant="compact"
+            [isPaused]="lead.pipelineStatus === 'PAUSED'"
+            [isDiscarded]="lead.pipelineStatus === 'DISCARDED' || lead.isDiscarded"
           />
           <span class="score-pack">
             <span class="score {{ scoreTone(lead.priorityScore) }}">P {{ lead.priorityScore }}</span>

@@ -21,6 +21,10 @@
   gap: 18px;
 }
 
+.status-panel {
+  gap: 22px;
+}
+
 .panel__header {
   display: flex;
   align-items: center;
@@ -38,6 +42,52 @@ h2 {
   color: var(--fudi-text);
   font-size: 1.35rem;
   line-height: 1.1;
+}
+
+.status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.primary-button,
+.ghost-button,
+.danger-button,
+.mini-button {
+  min-height: 40px;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-weight: 900;
+}
+
+.primary-button {
+  border: 1px solid rgba(185, 255, 102, 0.42);
+  background: linear-gradient(135deg, var(--fudi-green), var(--fudi-mint));
+  color: #07100d;
+}
+
+.ghost-button,
+.mini-button {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--fudi-text);
+}
+
+.danger-button {
+  border: 1px solid rgba(255, 123, 114, 0.3);
+  background: rgba(255, 123, 114, 0.11);
+  color: var(--fudi-coral);
+}
+
+.mini-button {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 0.78rem;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .detail-list {
@@ -70,6 +120,32 @@ dd {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+}
+
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.breakdown-grid span,
+.explanation-list p {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--fudi-muted);
+  margin: 0;
+}
+
+.breakdown-grid strong {
+  float: right;
+  color: var(--fudi-text);
+}
+
+.explanation-list {
+  display: grid;
+  gap: 8px;
 }
 
 .score-card {
@@ -178,6 +254,7 @@ dd {
 @media (max-width: 1120px) {
   .inspector-grid,
   .score-grid,
+  .breakdown-grid,
   .detail-list div {
     grid-template-columns: 1fr;
   }

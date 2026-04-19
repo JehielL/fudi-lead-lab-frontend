@@ -51,6 +51,18 @@ Implemented discovery operations:
 - Quick seed source creation
 - Loading, empty and error states
 
+## PR4-FE-LEAD-PROGRESS-TRACKER
+
+Implemented lead lifecycle UI:
+
+- Reusable `lead-progress-tracker` component with `input()` and `computed()`
+- Compact tracker in `/discovery`
+- Full tracker in `/lead-inspector/:id`
+- Status actions for next stage, pause and discard
+- Score recompute action
+- Score breakdown and explanations in the inspector
+- Status history in the inspector
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:

@@ -1,0 +1,123 @@
+.tracker {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  width: 100%;
+}
+
+.tracker-step {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  color: var(--fudi-subtle);
+}
+
+.tracker-step::before,
+.tracker-step::after {
+  position: absolute;
+  top: 13px;
+  width: 50%;
+  height: 1px;
+  content: "";
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.tracker-step::before {
+  left: 0;
+}
+
+.tracker-step::after {
+  right: 0;
+}
+
+.tracker-step:first-child::before,
+.tracker-step:last-child::after {
+  display: none;
+}
+
+.tracker-node {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05)),
+    rgba(7, 16, 13, 0.72);
+  color: var(--fudi-text);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+
+.tracker-node svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.tracker-label {
+  color: currentColor;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tracker-step--complete {
+  color: var(--fudi-green);
+}
+
+.tracker-step--complete::before,
+.tracker-step--complete::after {
+  background: rgba(185, 255, 102, 0.45);
+}
+
+.tracker-step--active {
+  color: var(--fudi-cyan);
+}
+
+.tracker-step--active .tracker-node {
+  border-color: rgba(112, 215, 255, 0.5);
+  box-shadow:
+    0 0 0 4px rgba(112, 215, 255, 0.08),
+    0 0 28px rgba(112, 215, 255, 0.22);
+}
+
+.tracker-step--paused {
+  color: var(--fudi-amber);
+}
+
+.tracker-step--blocked {
+  color: var(--fudi-coral);
+}
+
+.tracker--discarded .tracker-step::before,
+.tracker--discarded .tracker-step::after {
+  background: rgba(255, 123, 114, 0.24);
+}
+
+.tracker--paused .tracker-step::before,
+.tracker--paused .tracker-step::after {
+  background: rgba(255, 209, 102, 0.22);
+}
+
+.tracker--compact .tracker-label {
+  display: none;
+}
+
+.tracker--compact .tracker-node {
+  width: 18px;
+  height: 18px;
+}
+
+.tracker--compact .tracker-step::before,
+.tracker--compact .tracker-step::after {
+  top: 8px;
+}
+
+.tracker--compact .tracker-node svg {
+  width: 11px;
+  height: 11px;
+}

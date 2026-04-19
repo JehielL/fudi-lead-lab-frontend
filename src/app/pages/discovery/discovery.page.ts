@@ -8,12 +8,13 @@ import { scoreTone, statusTone } from '../../core/leads/lead-format';
 import { Lead, LeadListResponse, PipelineStatus, pipelineStatusLabels } from '../../core/leads/lead.models';
 import { LeadService } from '../../core/leads/lead.service';
 import { GlassCard } from '../../shared/components/glass-card/glass-card';
+import { LeadProgressTracker } from '../../shared/components/lead-progress-tracker/lead-progress-tracker';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 
 @Component({
   selector: 'app-discovery-page',
-  imports: [DatePipe, FormsModule, GlassCard, PageHeader, StatusBadge],
+  imports: [DatePipe, FormsModule, GlassCard, LeadProgressTracker, PageHeader, StatusBadge],
   templateUrl: './discovery.page.html',
   styleUrl: './discovery.page.css',
 })

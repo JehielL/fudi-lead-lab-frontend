@@ -82,7 +82,7 @@
 .lead-list__head,
 .lead-row {
   display: grid;
-  grid-template-columns: minmax(240px, 1.5fr) 140px minmax(220px, 1fr) minmax(180px, 1fr) 128px;
+  grid-template-columns: minmax(220px, 1.35fr) 124px minmax(110px, 0.8fr) minmax(200px, 1fr) minmax(170px, 0.95fr) 118px;
   gap: 14px;
   align-items: center;
 }

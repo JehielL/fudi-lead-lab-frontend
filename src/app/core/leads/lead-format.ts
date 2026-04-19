@@ -1,16 +1,16 @@
 import { PipelineStatus } from './lead.models';
 
 export function statusTone(status: PipelineStatus): 'green' | 'cyan' | 'amber' | 'coral' | 'muted' {
-  if (status === 'qualified' || status === 'won') {
+  if (status === 'QUALIFIED' || status === 'CONVERTED') {
     return 'green';
   }
-  if (status === 'contacted' || status === 'reviewing') {
+  if (status === 'CONTACTED' || status === 'REVIEWED') {
     return 'cyan';
   }
-  if (status === 'lost' || status === 'discarded') {
+  if (status === 'DISCARDED') {
     return 'coral';
   }
-  if (status === 'new') {
+  if (status === 'DETECTED' || status === 'PAUSED') {
     return 'amber';
   }
   return 'muted';

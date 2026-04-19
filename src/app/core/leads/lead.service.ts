@@ -3,7 +3,16 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { Lead, LeadActivity, LeadFilters, LeadListResponse, LeadSource } from './lead.models';
+import {
+  Lead,
+  LeadActivity,
+  LeadFilters,
+  LeadListResponse,
+  LeadScoreResponse,
+  LeadSource,
+  LeadStatusHistory,
+  PipelineStatus,
+} from './lead.models';
 
 @Injectable({ providedIn: 'root' })
 export class LeadService {
@@ -26,6 +35,25 @@ export class LeadService {
 
   getActivity(id: string): Observable<LeadActivity[]> {
     return this.http.get<LeadActivity[]>(`${this.baseUrl}/${id}/activity`);
+  }
+
+  getStatusHistory(id: string): Observable<LeadStatusHistory[]> {
+    return this.http.get<LeadStatusHistory[]>(`${this.baseUrl}/${id}/status-history`);
+  }
+
+  transitionStatus(id: string, toStatus: PipelineStatus, reason: string): Observable<Lead> {
+    return this.http.post<Lead>(`${this.baseUrl}/${id}/status-transition`, {
+      toStatus,
+      reason,
+    });
+  }
+
+  getScore(id: string): Observable<LeadScoreResponse> {
+    return this.http.get<LeadScoreResponse>(`${this.baseUrl}/${id}/score`);
+  }
+
+  recomputeScore(id: string): Observable<LeadScoreResponse> {
+    return this.http.post<LeadScoreResponse>(`${this.baseUrl}/${id}/score/recompute`, {});
   }
 
   private toParams(filters: LeadFilters): HttpParams {
