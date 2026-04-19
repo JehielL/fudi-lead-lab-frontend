@@ -99,6 +99,7 @@
         <span>Lead</span>
         <span>Status</span>
         <span>Stage</span>
+        <span>Enrichment</span>
         <span>Scores</span>
         <span>Location</span>
         <span>Updated</span>
@@ -120,6 +121,15 @@
             [isPaused]="lead.pipelineStatus === 'PAUSED'"
             [isDiscarded]="lead.pipelineStatus === 'DISCARDED' || lead.isDiscarded"
           />
+          <span class="enrichment-cell">
+            <app-status-badge
+              [label]="enrichmentStatusLabels[lead.enrichmentStatus || 'pending']"
+              [tone]="enrichmentTone(lead.enrichmentStatus)"
+            />
+            @if (lead.lastEnrichedAt) {
+              <small>{{ lead.lastEnrichedAt | date: 'MMM d, HH:mm' }}</small>
+            }
+          </span>
           <span class="score-pack">
             <span class="score {{ scoreTone(lead.priorityScore) }}">P {{ lead.priorityScore }}</span>
             <span class="score {{ scoreTone(lead.fitScore) }}">F {{ lead.fitScore }}</span>

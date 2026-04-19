@@ -4,13 +4,16 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
+  FeatureSnapshot,
   Lead,
   LeadActivity,
+  LeadEnrichmentSummary,
   LeadFilters,
   LeadListResponse,
   LeadScoreResponse,
   LeadSource,
   LeadStatusHistory,
+  PageSnapshot,
   PipelineStatus,
 } from './lead.models';
 
@@ -54,6 +57,22 @@ export class LeadService {
 
   recomputeScore(id: string): Observable<LeadScoreResponse> {
     return this.http.post<LeadScoreResponse>(`${this.baseUrl}/${id}/score/recompute`, {});
+  }
+
+  runEnrichment(id: string): Observable<LeadEnrichmentSummary> {
+    return this.http.post<LeadEnrichmentSummary>(`${this.baseUrl}/${id}/enrich`, {});
+  }
+
+  getEnrichment(id: string): Observable<LeadEnrichmentSummary> {
+    return this.http.get<LeadEnrichmentSummary>(`${this.baseUrl}/${id}/enrichment`);
+  }
+
+  getFeatureSnapshots(id: string): Observable<FeatureSnapshot[]> {
+    return this.http.get<FeatureSnapshot[]>(`${this.baseUrl}/${id}/feature-snapshots`);
+  }
+
+  getPageSnapshots(id: string): Observable<PageSnapshot[]> {
+    return this.http.get<PageSnapshot[]>(`${this.baseUrl}/${id}/page-snapshots`);
   }
 
   private toParams(filters: LeadFilters): HttpParams {

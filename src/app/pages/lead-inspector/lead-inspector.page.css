@@ -50,6 +50,12 @@ h2 {
   gap: 10px;
 }
 
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .primary-button,
 .ghost-button,
 .danger-button,
@@ -129,7 +135,9 @@ dd {
 }
 
 .breakdown-grid span,
-.explanation-list p {
+.explanation-list p,
+.signal-list p,
+.warning-copy {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 10px 12px;
@@ -146,6 +154,58 @@ dd {
 .explanation-list {
   display: grid;
   gap: 8px;
+}
+
+.signal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.signal-card {
+  display: grid;
+  align-content: space-between;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.signal-card--active {
+  border-color: rgba(185, 255, 102, 0.28);
+  background: rgba(185, 255, 102, 0.07);
+}
+
+.signal-card span,
+.signal-card small {
+  color: var(--fudi-muted);
+}
+
+.signal-card span {
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.signal-card strong {
+  color: var(--fudi-text);
+  font-size: 1.35rem;
+}
+
+.signal-card small {
+  overflow-wrap: anywhere;
+}
+
+.signal-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.warning-copy {
+  border-color: rgba(255, 123, 114, 0.26);
+  color: var(--fudi-coral);
 }
 
 .score-card {
@@ -254,6 +314,8 @@ dd {
 @media (max-width: 1120px) {
   .inspector-grid,
   .score-grid,
+  .signal-grid,
+  .signal-list,
   .breakdown-grid,
   .detail-list div {
     grid-template-columns: 1fr;

@@ -7,6 +7,8 @@ export type PipelineStatus =
   | 'PAUSED'
   | 'DISCARDED';
 
+export type EnrichmentStatus = 'pending' | 'running' | 'completed' | 'failed';
+
 export interface ScoreBreakdown {
   newnessScore: number;
   digitalGapScore: number;
@@ -38,6 +40,9 @@ export interface Lead {
   fitScore: number;
   confidence: number;
   scoreBreakdown: ScoreBreakdown;
+  enrichmentStatus: EnrichmentStatus;
+  lastEnrichedAt?: string | null;
+  lastEnrichmentError?: string | null;
   isActive: boolean;
   isDiscarded: boolean;
   createdAt: string;
@@ -103,6 +108,40 @@ export interface LeadScoreResponse {
   confidence: number;
 }
 
+export interface PageSnapshot {
+  id: string;
+  leadId: string;
+  url: string;
+  snapshotType: string;
+  httpStatus?: number | null;
+  contentType?: string | null;
+  title?: string | null;
+  metaDescription?: string | null;
+  textExtract?: string | null;
+  htmlArtifactPath?: string | null;
+  capturedAt: string;
+}
+
+export interface FeatureSnapshot {
+  id: string;
+  leadId: string;
+  version: number;
+  features: Record<string, unknown>;
+  derivedSignals: Record<string, unknown>;
+  createdAt: string;
+  sourceSnapshotIds: string[];
+}
+
+export interface LeadEnrichmentSummary {
+  leadId: string;
+  status: EnrichmentStatus;
+  lastEnrichedAt?: string | null;
+  lastError?: string | null;
+  latestFeatureSnapshot?: FeatureSnapshot | null;
+  latestPageSnapshot?: PageSnapshot | null;
+  score?: LeadScoreResponse | null;
+}
+
 export const pipelineStatusLabels: Record<PipelineStatus, string> = {
   DETECTED: 'Detected',
   REVIEWED: 'Reviewed',
@@ -111,4 +150,11 @@ export const pipelineStatusLabels: Record<PipelineStatus, string> = {
   CONVERTED: 'Converted',
   PAUSED: 'Paused',
   DISCARDED: 'Discarded',
+};
+
+export const enrichmentStatusLabels: Record<EnrichmentStatus, string> = {
+  pending: 'Pending',
+  running: 'Running',
+  completed: 'Enriched',
+  failed: 'Failed',
 };

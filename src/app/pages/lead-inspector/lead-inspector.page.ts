@@ -6,12 +6,16 @@ import { forkJoin } from 'rxjs';
 
 import { scoreTone, statusTone } from '../../core/leads/lead-format';
 import {
+  FeatureSnapshot,
   Lead,
   LeadActivity,
+  LeadEnrichmentSummary,
   LeadScoreResponse,
   LeadSource,
   LeadStatusHistory,
+  PageSnapshot,
   PipelineStatus,
+  enrichmentStatusLabels,
   pipelineStatusLabels,
 } from '../../core/leads/lead.models';
 import { LeadService } from '../../core/leads/lead.service';
@@ -36,6 +40,9 @@ export class LeadInspectorPage implements OnInit {
   readonly activity = signal<LeadActivity[]>([]);
   readonly statusHistory = signal<LeadStatusHistory[]>([]);
   readonly score = signal<LeadScoreResponse | null>(null);
+  readonly enrichment = signal<LeadEnrichmentSummary | null>(null);
+  readonly featureSnapshots = signal<FeatureSnapshot[]>([]);
+  readonly pageSnapshots = signal<PageSnapshot[]>([]);
   readonly isLoading = signal(false);
   readonly actionInFlight = signal('');
   readonly errorMessage = signal('');
@@ -50,8 +57,70 @@ export class LeadInspectorPage implements OnInit {
   });
 
   readonly pipelineStatusLabels = pipelineStatusLabels;
+  readonly enrichmentStatusLabels = enrichmentStatusLabels;
   readonly statusTone = statusTone;
   readonly scoreTone = scoreTone;
+  readonly latestFeatures = computed(() => {
+    return this.enrichment()?.latestFeatureSnapshot?.features ?? this.featureSnapshots()[0]?.features ?? {};
+  });
+  readonly latestDerivedSignals = computed(() => {
+    return this.enrichment()?.latestFeatureSnapshot?.derivedSignals ?? this.featureSnapshots()[0]?.derivedSignals ?? {};
+  });
+  readonly signalCards = computed(() => {
+    const features = this.latestFeatures();
+    return [
+      {
+        label: 'Website',
+        value: this.booleanLabel(features['hasWebsite']),
+        active: Boolean(features['hasWebsite']),
+        detail: this.textValue(features['analyzedUrl']) || 'No website evidence',
+      },
+      {
+        label: 'Instagram',
+        value: this.booleanLabel(features['hasInstagram']),
+        active: Boolean(features['hasInstagram']),
+        detail: this.lead()?.instagram || 'No Instagram signal',
+      },
+      {
+        label: 'Booking',
+        value: this.booleanLabel(features['hasBookingLink']),
+        active: Boolean(features['hasBookingLink']),
+        detail: this.textValue(features['bookingProviderHint']) || 'No booking provider',
+      },
+      {
+        label: 'Menu',
+        value: this.booleanLabel(features['hasMenuLink']),
+        active: Boolean(features['hasMenuLink']),
+        detail: 'Menu or carta signal',
+      },
+      {
+        label: 'Phone',
+        value: this.booleanLabel(features['hasPhone']),
+        active: Boolean(features['hasPhone']),
+        detail: this.lead()?.phone || 'No phone signal',
+      },
+      {
+        label: 'Email',
+        value: this.booleanLabel(features['hasEmail']),
+        active: Boolean(features['hasEmail']),
+        detail: this.lead()?.email || 'No email signal',
+      },
+    ];
+  });
+  readonly maturitySignals = computed(() => {
+    const features = this.latestFeatures();
+    const derived = this.latestDerivedSignals();
+    return [
+      `Digital maturity: ${this.textValue(derived['digitalMaturity']) || 'unknown'}`,
+      `Novelty: ${this.textValue(derived['novelty']) || 'unknown'}`,
+      `Contactability: ${this.textValue(derived['contactability']) || 'unknown'}`,
+      `Low content website: ${this.booleanLabel(features['lowContentWebsite'])}`,
+      `Broken website hint: ${this.booleanLabel(features['brokenWebsiteHint'])}`,
+      `Social only presence: ${this.booleanLabel(features['socialOnlyPresenceHint'])}`,
+      `Opening soon hint: ${this.booleanLabel(features['openingSoonHint'])}`,
+      `New opening hint: ${this.booleanLabel(features['newOpeningHint'])}`,
+    ];
+  });
   readonly nextStatus = computed<PipelineStatus | null>(() => {
     const status = this.lead()?.pipelineStatus;
     if (status === 'DETECTED') return 'REVIEWED';
@@ -81,20 +150,47 @@ export class LeadInspectorPage implements OnInit {
       activity: this.leadService.getActivity(leadId),
       statusHistory: this.leadService.getStatusHistory(leadId),
       score: this.leadService.getScore(leadId),
+      enrichment: this.leadService.getEnrichment(leadId),
+      featureSnapshots: this.leadService.getFeatureSnapshots(leadId),
+      pageSnapshots: this.leadService.getPageSnapshots(leadId),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ lead, sources, activity, statusHistory, score }) => {
+        next: ({ lead, sources, activity, statusHistory, score, enrichment, featureSnapshots, pageSnapshots }) => {
           this.lead.set(lead);
           this.sources.set(sources);
           this.activity.set(activity);
           this.statusHistory.set(statusHistory);
           this.score.set(score);
+          this.enrichment.set(enrichment);
+          this.featureSnapshots.set(featureSnapshots);
+          this.pageSnapshots.set(pageSnapshots);
           this.isLoading.set(false);
         },
         error: () => {
           this.errorMessage.set('No pudimos cargar este lead. Puede que no exista o la API no este disponible.');
           this.isLoading.set(false);
+        },
+      });
+  }
+
+  runEnrichment(): void {
+    const lead = this.lead();
+    if (!lead) {
+      return;
+    }
+    this.actionInFlight.set('enrichment');
+    this.leadService
+      .runEnrichment(lead.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.actionInFlight.set('');
+          this.loadLead(lead.id);
+        },
+        error: () => {
+          this.errorMessage.set('No pudimos ejecutar el enrichment.');
+          this.actionInFlight.set('');
         },
       });
   }
@@ -139,5 +235,25 @@ export class LeadInspectorPage implements OnInit {
           this.actionInFlight.set('');
         },
       });
+  }
+
+  enrichmentTone(status: string | null | undefined): 'green' | 'amber' | 'coral' | 'cyan' {
+    if (status === 'completed') return 'green';
+    if (status === 'failed') return 'coral';
+    if (status === 'running') return 'cyan';
+    return 'amber';
+  }
+
+  featureNumber(key: string): number | null {
+    const value = this.latestFeatures()[key];
+    return typeof value === 'number' ? value : null;
+  }
+
+  private booleanLabel(value: unknown): string {
+    return value ? 'Yes' : 'No';
+  }
+
+  private textValue(value: unknown): string {
+    return typeof value === 'string' ? value : '';
   }
 }

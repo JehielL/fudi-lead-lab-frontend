@@ -82,7 +82,7 @@
 .lead-list__head,
 .lead-row {
   display: grid;
-  grid-template-columns: minmax(220px, 1.35fr) 124px minmax(110px, 0.8fr) minmax(200px, 1fr) minmax(170px, 0.95fr) 118px;
+  grid-template-columns: minmax(210px, 1.2fr) 118px minmax(100px, 0.7fr) minmax(130px, 0.8fr) minmax(178px, 0.95fr) minmax(150px, 0.8fr) 110px;
   gap: 14px;
   align-items: center;
 }
@@ -147,6 +147,17 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.enrichment-cell {
+  display: grid;
+  gap: 5px;
+  justify-items: start;
+}
+
+.enrichment-cell small {
+  color: var(--fudi-muted);
+  font-size: 0.72rem;
 }
 
 .score {

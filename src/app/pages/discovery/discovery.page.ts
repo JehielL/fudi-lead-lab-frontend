@@ -5,7 +5,14 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { scoreTone, statusTone } from '../../core/leads/lead-format';
-import { Lead, LeadListResponse, PipelineStatus, pipelineStatusLabels } from '../../core/leads/lead.models';
+import {
+  EnrichmentStatus,
+  Lead,
+  LeadListResponse,
+  PipelineStatus,
+  enrichmentStatusLabels,
+  pipelineStatusLabels,
+} from '../../core/leads/lead.models';
 import { LeadService } from '../../core/leads/lead.service';
 import { GlassCard } from '../../shared/components/glass-card/glass-card';
 import { LeadProgressTracker } from '../../shared/components/lead-progress-tracker/lead-progress-tracker';
@@ -48,8 +55,16 @@ export class DiscoveryPage implements OnInit {
   ];
 
   readonly pipelineStatusLabels = pipelineStatusLabels;
+  readonly enrichmentStatusLabels = enrichmentStatusLabels;
   readonly statusTone = statusTone;
   readonly scoreTone = scoreTone;
+
+  enrichmentTone(status: EnrichmentStatus | null | undefined): 'green' | 'amber' | 'coral' | 'cyan' {
+    if (status === 'completed') return 'green';
+    if (status === 'failed') return 'coral';
+    if (status === 'running') return 'cyan';
+    return 'amber';
+  }
 
   ngOnInit(): void {
     this.loadLeads();

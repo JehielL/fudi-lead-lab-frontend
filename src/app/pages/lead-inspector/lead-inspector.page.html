@@ -86,9 +86,14 @@
         <section class="panel">
           <div class="panel__header">
             <h2>Scores</h2>
-            <button class="mini-button" type="button" (click)="recomputeScore()" [disabled]="actionInFlight() !== ''">
-              Recompute
-            </button>
+            <div class="panel-actions">
+              <button class="mini-button" type="button" (click)="runEnrichment()" [disabled]="actionInFlight() !== ''">
+                Run enrichment
+              </button>
+              <button class="mini-button" type="button" (click)="recomputeScore()" [disabled]="actionInFlight() !== ''">
+                Recompute
+              </button>
+            </div>
           </div>
           <div class="score-grid">
             <div class="score-card {{ scoreTone(currentLead.priorityScore) }}">
@@ -115,6 +120,88 @@
                 <p>{{ item }}</p>
               }
             </div>
+          }
+        </section>
+      </app-glass-card>
+
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <h2>Enrichment</h2>
+            <app-status-badge
+              [label]="enrichmentStatusLabels[currentLead.enrichmentStatus || 'pending']"
+              [tone]="enrichmentTone(currentLead.enrichmentStatus)"
+            />
+          </div>
+          <dl class="detail-list">
+            <div>
+              <dt>Last run</dt>
+              <dd>{{ currentLead.lastEnrichedAt ? (currentLead.lastEnrichedAt | date: 'MMM d, y, HH:mm') : 'Not run yet' }}</dd>
+            </div>
+            <div>
+              <dt>Snapshots</dt>
+              <dd>{{ featureSnapshots().length }} feature · {{ pageSnapshots().length }} page</dd>
+            </div>
+            <div>
+              <dt>Contactability</dt>
+              <dd>{{ featureNumber('contactabilityScore') ?? 'No signal yet' }}</dd>
+            </div>
+          </dl>
+          @if (currentLead.lastEnrichmentError) {
+            <p class="warning-copy">{{ currentLead.lastEnrichmentError }}</p>
+          } @else if (enrichment(); as enrichmentSummary) {
+            @if (enrichmentSummary.lastError) {
+              <p class="warning-copy">{{ enrichmentSummary.lastError }}</p>
+            }
+          }
+        </section>
+      </app-glass-card>
+
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <h2>Signals</h2>
+            <app-status-badge [label]="signalCards().length + ' core'" tone="cyan" />
+          </div>
+          @if (featureSnapshots().length || enrichment()?.latestFeatureSnapshot) {
+            <div class="signal-grid">
+              @for (signal of signalCards(); track signal.label) {
+                <article class="signal-card" [class.signal-card--active]="signal.active">
+                  <span>{{ signal.label }}</span>
+                  <strong>{{ signal.value }}</strong>
+                  <small>{{ signal.detail }}</small>
+                </article>
+              }
+            </div>
+            <div class="signal-list">
+              @for (item of maturitySignals(); track item) {
+                <p>{{ item }}</p>
+              }
+            </div>
+          } @else {
+            <p class="empty-copy">No enrichment signals captured yet.</p>
+          }
+        </section>
+      </app-glass-card>
+
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <h2>Evidence</h2>
+            <app-status-badge [label]="pageSnapshots().length + ' pages'" tone="amber" />
+          </div>
+          @if (pageSnapshots().length) {
+            <div class="timeline">
+              @for (snapshot of pageSnapshots(); track snapshot.id) {
+                <article>
+                  <strong>{{ snapshot.title || snapshot.url }}</strong>
+                  <p>{{ snapshot.metaDescription || snapshot.textExtract || 'No extract captured.' }}</p>
+                  <small>{{ snapshot.httpStatus || 'No status' }} · {{ snapshot.url }} · {{ snapshot.capturedAt | date: 'MMM d, y, HH:mm' }}</small>
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="empty-copy">No page evidence captured for this lead yet.</p>
           }
         </section>
       </app-glass-card>
