@@ -75,13 +75,7 @@ export const routes: Routes = [
       {
         path: 'ops',
         loadComponent: () =>
-          import('./pages/placeholder/placeholder.page').then((m) => m.PlaceholderPage),
-        data: {
-          eyebrow: 'Reliability',
-          title: 'Ops',
-          description: 'Panel reservado para salud operativa, auditoria y procesos internos.',
-          badge: 'Placeholder',
-        },
+          import('./pages/ops/ops.page').then((m) => m.OpsPage),
       },
     ],
   },

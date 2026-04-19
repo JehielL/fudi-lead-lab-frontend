@@ -1,0 +1,203 @@
+<section class="ops-page">
+  <app-page-header
+    eyebrow="Reliability"
+    title="Ops"
+    description="Panel operativo para lanzar discovery, revisar jobs, gestionar fuentes y observar la maquina."
+    badge="Discovery engine"
+  />
+
+  <div class="ops-actions">
+    <button class="primary-button" type="button" (click)="runDiscovery()" [disabled]="actionInFlight() !== ''">
+      Run discovery
+    </button>
+    <button class="ghost-button" type="button" (click)="createSeedSource()" [disabled]="actionInFlight() !== ''">
+      Add seed source
+    </button>
+    <button class="ghost-button" type="button" (click)="loadOps()" [disabled]="isLoading()">Refresh</button>
+  </div>
+
+  @if (actionMessage()) {
+    <div class="notice glass-surface">{{ actionMessage() }}</div>
+  }
+
+  @if (isLoading() && !hasData()) {
+    <div class="state-panel glass-surface">
+      <span class="loader"></span>
+      Loading operations monitor
+    </div>
+  } @else if (errorMessage() && !hasData()) {
+    <div class="state-panel state-panel--error glass-surface">
+      {{ errorMessage() }}
+    </div>
+  } @else {
+    @if (errorMessage()) {
+      <div class="notice notice--error glass-surface">{{ errorMessage() }}</div>
+    }
+
+    <div class="kpi-grid">
+      <app-glass-card>
+        <div class="kpi">
+          <span>Jobs 24h</span>
+          <strong>{{ summary()?.jobsLast24h ?? 0 }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Successful</span>
+          <strong>{{ summary()?.successfulJobsLast24h ?? 0 }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Failed</span>
+          <strong>{{ summary()?.failedJobsLast24h ?? 0 }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Leads created</span>
+          <strong>{{ summary()?.leadsCreatedLast24h ?? 0 }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Leads updated</span>
+          <strong>{{ summary()?.leadsUpdatedLast24h ?? 0 }}</strong>
+        </div>
+      </app-glass-card>
+      <app-glass-card>
+        <div class="kpi">
+          <span>Active sources</span>
+          <strong>{{ summary()?.activeSources ?? 0 }}</strong>
+        </div>
+      </app-glass-card>
+    </div>
+
+    <div class="ops-grid">
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <h2>Recent jobs</h2>
+            <app-status-badge [label]="jobs().length + ' loaded'" tone="cyan" />
+          </div>
+
+          @if (jobs().length) {
+            <div class="job-table">
+              <div class="job-table__head">
+                <span>Type</span>
+                <span>Source</span>
+                <span>Status</span>
+                <span>Started</span>
+                <span>Processed</span>
+                <span>Leads</span>
+                <span>Errors</span>
+                <span></span>
+              </div>
+              @for (job of jobs(); track job.id) {
+                <div class="job-row">
+                  <span>{{ job.jobType }}</span>
+                  <span>{{ job.sourceType || 'mixed' }}</span>
+                  <app-status-badge [label]="jobStatusLabels[job.status]" [tone]="jobTone(job.status)" />
+                  <span>{{ job.startedAt | date: 'MMM d, HH:mm' }}</span>
+                  <span>{{ job.processedCount }}</span>
+                  <span>{{ job.createdLeadCount }} / {{ job.updatedLeadCount }}</span>
+                  <span>{{ job.errorCount }}</span>
+                  <button
+                    class="mini-button"
+                    type="button"
+                    (click)="retryJob(job)"
+                    [disabled]="actionInFlight() !== ''"
+                  >
+                    Retry
+                  </button>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-copy">No jobs have been registered yet.</p>
+          }
+        </section>
+      </app-glass-card>
+
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <h2>Sources</h2>
+            <app-status-badge [label]="sources().length + ' sources'" tone="green" />
+          </div>
+
+          @if (sources().length) {
+            <div class="source-list">
+              @for (source of sources(); track source.id) {
+                <article class="source-row">
+                  <div>
+                    <strong>{{ source.name }}</strong>
+                    <small>{{ source.sourceType }} · {{ source.sourceKey }}</small>
+                  </div>
+                  <span class="priority">P{{ source.priority }}</span>
+                  <button
+                    class="mini-button"
+                    type="button"
+                    (click)="toggleSource(source)"
+                    [disabled]="actionInFlight() !== ''"
+                  >
+                    {{ source.isEnabled ? 'Disable' : 'Enable' }}
+                  </button>
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="empty-copy">No sources configured yet.</p>
+          }
+        </section>
+      </app-glass-card>
+
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <h2>Raw discovery items</h2>
+            <app-status-badge [label]="rawItems().length + ' recent'" tone="amber" />
+          </div>
+
+          @if (rawItems().length) {
+            <div class="raw-list">
+              @for (item of rawItems(); track item.id) {
+                <article>
+                  <div>
+                    <strong>{{ item.normalizedPayload['name'] || item.rawPayload['name'] || item.externalId }}</strong>
+                    <small>{{ item.sourceKey }} · {{ item.createdAt | date: 'MMM d, HH:mm' }}</small>
+                  </div>
+                  <app-status-badge [label]="item.processed ? 'Processed' : 'Pending'" [tone]="item.processed ? 'green' : 'amber'" />
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="empty-copy">No raw items captured yet.</p>
+          }
+        </section>
+      </app-glass-card>
+
+      <app-glass-card>
+        <section class="panel">
+          <div class="panel__header">
+            <h2>Last error</h2>
+            @if (summary()?.lastError) {
+              <app-status-badge label="Needs review" tone="coral" />
+            } @else {
+              <app-status-badge label="Clear" tone="green" />
+            }
+          </div>
+
+          @if (summary()?.lastError; as lastError) {
+            <div class="error-box">
+              <strong>{{ lastError.jobType }} · {{ lastError.startedAt | date: 'MMM d, HH:mm' }}</strong>
+              <p>{{ lastError.errorMessage || 'Job failed without a detailed message.' }}</p>
+            </div>
+          } @else {
+            <p class="empty-copy">No recent job errors.</p>
+          }
+        </section>
+      </app-glass-card>
+    </div>
+  }
+</section>

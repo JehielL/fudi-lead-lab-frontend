@@ -39,6 +39,18 @@ Implemented lead workflow:
 - `/lead-inspector/:id` consumes lead detail, sources and activity endpoints
 - Liquid glass panels for identity, contact, location, scores, sources and activity
 
+## PR3-FE-OPS-MONITOR
+
+Implemented discovery operations:
+
+- `/ops` consumes jobs, sources, raw discovery items and ops summary
+- KPI cards for jobs, failures, created/updated leads and active sources
+- Recent jobs table with retry action
+- Source list with enable/disable action
+- Manual discovery run with inline seed item
+- Quick seed source creation
+- Loading, empty and error states
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
